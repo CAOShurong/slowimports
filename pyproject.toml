@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slowimports"
+dynamic = ["version"]
+description = "Find out why your Python program is slow to start, and what to do about it."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Shurong Cao", email = "170531907+TeresaCSR@users.noreply.github.com" }]
+keywords = [
+    "import", "importtime", "startup", "performance", "profiler", "profiling",
+    "cli", "lazy-import", "optimization", "terminal", "benchmark",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Benchmark",
+    "Topic :: Utilities",
+]
+
+# Nothing. A tool that measures import cost should not add any of its own,
+# and the standard library already ships everything this needs: subprocess to
+# run the target, ast to read the source, and argparse to take arguments.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.6"]
+
+[project.scripts]
+slowimports = "slowimports.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/TeresaCSR/slowimports"
+Issues = "https://github.com/TeresaCSR/slowimports/issues"
+Changelog = "https://github.com/TeresaCSR/slowimports/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/slowimports/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slowimports"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/examples", "/README.md", "/LICENSE", "/CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error::ResourceWarning"]
+
+[tool.ruff]
+line-length = 96
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    # Block-drawing and box characters are the output format here, so the
+    # ambiguous-unicode rules would fire on every rendering line.
+    "RUF001", "RUF002", "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"examples/*" = ["F401", "E501"]
