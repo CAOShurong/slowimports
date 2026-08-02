@@ -1,0 +1,1384 @@
+{
+  "total_us": 102719,
+  "modules": 214,
+  "roots": [
+    {
+      "name": "winreg",
+      "self_us": 70,
+      "cumulative_us": 70,
+      "children": []
+    },
+    {
+      "name": "_frozen_importlib_external",
+      "self_us": 449,
+      "cumulative_us": 769,
+      "children": [
+        {
+          "name": "_io",
+          "self_us": 148,
+          "cumulative_us": 148,
+          "children": []
+        },
+        {
+          "name": "marshal",
+          "self_us": 26,
+          "cumulative_us": 26,
+          "children": []
+        },
+        {
+          "name": "nt",
+          "self_us": 147,
+          "cumulative_us": 147,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "zipimport",
+      "self_us": 171,
+      "cumulative_us": 787,
+      "children": [
+        {
+          "name": "time",
+          "self_us": 617,
+          "cumulative_us": 617,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "encodings",
+      "self_us": 1032,
+      "cumulative_us": 1940,
+      "children": [
+        {
+          "name": "codecs",
+          "self_us": 400,
+          "cumulative_us": 440,
+          "children": [
+            {
+              "name": "_codecs",
+              "self_us": 41,
+              "cumulative_us": 41,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "encodings.aliases",
+          "self_us": 469,
+          "cumulative_us": 469,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "encodings.utf_8",
+      "self_us": 237,
+      "cumulative_us": 237,
+      "children": []
+    },
+    {
+      "name": "encodings.gbk",
+      "self_us": 260,
+      "cumulative_us": 328,
+      "children": [
+        {
+          "name": "_codecs_cn",
+          "self_us": 31,
+          "cumulative_us": 31,
+          "children": []
+        },
+        {
+          "name": "_multibytecodec",
+          "self_us": 37,
+          "cumulative_us": 37,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "_signal",
+      "self_us": 31,
+      "cumulative_us": 31,
+      "children": []
+    },
+    {
+      "name": "io",
+      "self_us": 113,
+      "cumulative_us": 262,
+      "children": [
+        {
+          "name": "abc",
+          "self_us": 128,
+          "cumulative_us": 150,
+          "children": [
+            {
+              "name": "_abc",
+              "self_us": 23,
+              "cumulative_us": 23,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "site",
+      "self_us": 1076,
+      "cumulative_us": 5016,
+      "children": [
+        {
+          "name": "os",
+          "self_us": 499,
+          "cumulative_us": 1818,
+          "children": [
+            {
+              "name": "stat",
+              "self_us": 70,
+              "cumulative_us": 119,
+              "children": [
+                {
+                  "name": "_stat",
+                  "self_us": 49,
+                  "cumulative_us": 49,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "_collections_abc",
+              "self_us": 675,
+              "cumulative_us": 675,
+              "children": []
+            },
+            {
+              "name": "ntpath",
+              "self_us": 331,
+              "cumulative_us": 527,
+              "children": [
+                {
+                  "name": "genericpath",
+                  "self_us": 70,
+                  "cumulative_us": 70,
+                  "children": []
+                },
+                {
+                  "name": "_winapi",
+                  "self_us": 126,
+                  "cumulative_us": 126,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "_sitebuiltins",
+          "self_us": 78,
+          "cumulative_us": 78,
+          "children": []
+        },
+        {
+          "name": "encodings.utf_8_sig",
+          "self_us": 276,
+          "cumulative_us": 276,
+          "children": []
+        },
+        {
+          "name": "_distutils_hack",
+          "self_us": 713,
+          "cumulative_us": 713,
+          "children": []
+        },
+        {
+          "name": "pywin32_bootstrap",
+          "self_us": 538,
+          "cumulative_us": 815,
+          "children": [
+            {
+              "name": "pywin32_system32",
+              "self_us": 278,
+              "cumulative_us": 278,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "sitecustomize",
+          "self_us": 136,
+          "cumulative_us": 136,
+          "children": []
+        },
+        {
+          "name": "usercustomize",
+          "self_us": 108,
+          "cumulative_us": 108,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "__future__",
+      "self_us": 408,
+      "cumulative_us": 408,
+      "children": []
+    },
+    {
+      "name": "argparse",
+      "self_us": 1161,
+      "cumulative_us": 8991,
+      "children": [
+        {
+          "name": "re",
+          "self_us": 721,
+          "cumulative_us": 7131,
+          "children": [
+            {
+              "name": "enum",
+              "self_us": 1150,
+              "cumulative_us": 4396,
+              "children": [
+                {
+                  "name": "functools",
+                  "self_us": 632,
+                  "cumulative_us": 2873,
+                  "children": [
+                    {
+                      "name": "collections",
+                      "self_us": 804,
+                      "cumulative_us": 2194,
+                      "children": [
+                        {
+                          "name": "itertools",
+                          "self_us": 302,
+                          "cumulative_us": 302,
+                          "children": []
+                        },
+                        {
+                          "name": "keyword",
+                          "self_us": 286,
+                          "cumulative_us": 286,
+                          "children": []
+                        },
+                        {
+                          "name": "operator",
+                          "self_us": 378,
+                          "cumulative_us": 445,
+                          "children": [
+                            {
+                              "name": "_operator",
+                              "self_us": 67,
+                              "cumulative_us": 67,
+                              "children": []
+                            }
+                          ]
+                        },
+                        {
+                          "name": "reprlib",
+                          "self_us": 298,
+                          "cumulative_us": 298,
+                          "children": []
+                        },
+                        {
+                          "name": "_collections",
+                          "self_us": 61,
+                          "cumulative_us": 61,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "_functools",
+                      "self_us": 48,
+                      "cumulative_us": 48,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "name": "types",
+                  "self_us": 374,
+                  "cumulative_us": 374,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "re._compiler",
+              "self_us": 496,
+              "cumulative_us": 1551,
+              "children": [
+                {
+                  "name": "_sre",
+                  "self_us": 71,
+                  "cumulative_us": 71,
+                  "children": []
+                },
+                {
+                  "name": "re._parser",
+                  "self_us": 443,
+                  "cumulative_us": 785,
+                  "children": [
+                    {
+                      "name": "re._constants",
+                      "self_us": 343,
+                      "cumulative_us": 343,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "name": "re._casefix",
+                  "self_us": 200,
+                  "cumulative_us": 200,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "copyreg",
+              "self_us": 465,
+              "cumulative_us": 465,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "gettext",
+          "self_us": 700,
+          "cumulative_us": 700,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "csv",
+      "self_us": 450,
+      "cumulative_us": 516,
+      "children": [
+        {
+          "name": "_csv",
+          "self_us": 66,
+          "cumulative_us": 66,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "json",
+      "self_us": 330,
+      "cumulative_us": 1696,
+      "children": [
+        {
+          "name": "json.decoder",
+          "self_us": 580,
+          "cumulative_us": 986,
+          "children": [
+            {
+              "name": "json.scanner",
+              "self_us": 360,
+              "cumulative_us": 407,
+              "children": [
+                {
+                  "name": "_json",
+                  "self_us": 47,
+                  "cumulative_us": 47,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "json.encoder",
+          "self_us": 382,
+          "cumulative_us": 382,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "statistics",
+      "self_us": 607,
+      "cumulative_us": 4754,
+      "children": [
+        {
+          "name": "math",
+          "self_us": 56,
+          "cumulative_us": 56,
+          "children": []
+        },
+        {
+          "name": "numbers",
+          "self_us": 451,
+          "cumulative_us": 451,
+          "children": []
+        },
+        {
+          "name": "random",
+          "self_us": 440,
+          "cumulative_us": 755,
+          "children": [
+            {
+              "name": "bisect",
+              "self_us": 255,
+              "cumulative_us": 290,
+              "children": [
+                {
+                  "name": "_bisect",
+                  "self_us": 35,
+                  "cumulative_us": 35,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "_random",
+              "self_us": 26,
+              "cumulative_us": 26,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "fractions",
+          "self_us": 1062,
+          "cumulative_us": 2853,
+          "children": [
+            {
+              "name": "decimal",
+              "self_us": 248,
+              "cumulative_us": 1792,
+              "children": [
+                {
+                  "name": "_decimal",
+                  "self_us": 1544,
+                  "cumulative_us": 1544,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "_statistics",
+          "self_us": 34,
+          "cumulative_us": 34,
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "unittest.mock",
+      "self_us": 1744,
+      "cumulative_us": 63697,
+      "children": [
+        {
+          "name": "unittest",
+          "self_us": 349,
+          "cumulative_us": 18310,
+          "children": [
+            {
+              "name": "unittest.result",
+              "self_us": 390,
+              "cumulative_us": 4539,
+              "children": [
+                {
+                  "name": "traceback",
+                  "self_us": 1234,
+                  "cumulative_us": 3810,
+                  "children": [
+                    {
+                      "name": "linecache",
+                      "self_us": 379,
+                      "cumulative_us": 379,
+                      "children": []
+                    },
+                    {
+                      "name": "textwrap",
+                      "self_us": 764,
+                      "cumulative_us": 764,
+                      "children": []
+                    },
+                    {
+                      "name": "warnings",
+                      "self_us": 443,
+                      "cumulative_us": 443,
+                      "children": []
+                    },
+                    {
+                      "name": "contextlib",
+                      "self_us": 691,
+                      "cumulative_us": 691,
+                      "children": []
+                    },
+                    {
+                      "name": "_colorize",
+                      "self_us": 301,
+                      "cumulative_us": 301,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "name": "unittest.util",
+                  "self_us": 341,
+                  "cumulative_us": 341,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "unittest.case",
+              "self_us": 817,
+              "cumulative_us": 10270,
+              "children": [
+                {
+                  "name": "difflib",
+                  "self_us": 624,
+                  "cumulative_us": 976,
+                  "children": [
+                    {
+                      "name": "heapq",
+                      "self_us": 309,
+                      "cumulative_us": 353,
+                      "children": [
+                        {
+                          "name": "_heapq",
+                          "self_us": 45,
+                          "cumulative_us": 45,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "pprint",
+                  "self_us": 405,
+                  "cumulative_us": 8477,
+                  "children": [
+                    {
+                      "name": "dataclasses",
+                      "self_us": 597,
+                      "cumulative_us": 8073,
+                      "children": [
+                        {
+                          "name": "copy",
+                          "self_us": 308,
+                          "cumulative_us": 1075,
+                          "children": [
+                            {
+                              "name": "weakref",
+                              "self_us": 451,
+                              "cumulative_us": 768,
+                              "children": [
+                                {
+                                  "name": "_weakrefset",
+                                  "self_us": 317,
+                                  "cumulative_us": 317,
+                                  "children": []
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "name": "inspect",
+                          "self_us": 1566,
+                          "cumulative_us": 6401,
+                          "children": [
+                            {
+                              "name": "ast",
+                              "self_us": 1092,
+                              "cumulative_us": 1766,
+                              "children": [
+                                {
+                                  "name": "_ast",
+                                  "self_us": 674,
+                                  "cumulative_us": 674,
+                                  "children": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "dis",
+                              "self_us": 817,
+                              "cumulative_us": 1542,
+                              "children": [
+                                {
+                                  "name": "opcode",
+                                  "self_us": 373,
+                                  "cumulative_us": 725,
+                                  "children": [
+                                    {
+                                      "name": "_opcode",
+                                      "self_us": 49,
+                                      "cumulative_us": 49,
+                                      "children": []
+                                    },
+                                    {
+                                      "name": "_opcode_metadata",
+                                      "self_us": 304,
+                                      "cumulative_us": 304,
+                                      "children": []
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "importlib.machinery",
+                              "self_us": 63,
+                              "cumulative_us": 481,
+                              "children": [
+                                {
+                                  "name": "importlib",
+                                  "self_us": 418,
+                                  "cumulative_us": 418,
+                                  "children": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "tokenize",
+                              "self_us": 731,
+                              "cumulative_us": 1048,
+                              "children": [
+                                {
+                                  "name": "token",
+                                  "self_us": 281,
+                                  "cumulative_us": 281,
+                                  "children": []
+                                },
+                                {
+                                  "name": "_tokenize",
+                                  "self_us": 37,
+                                  "cumulative_us": 37,
+                                  "children": []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "unittest.suite",
+              "self_us": 380,
+              "cumulative_us": 380,
+              "children": []
+            },
+            {
+              "name": "unittest.loader",
+              "self_us": 530,
+              "cumulative_us": 1247,
+              "children": [
+                {
+                  "name": "fnmatch",
+                  "self_us": 270,
+                  "cumulative_us": 717,
+                  "children": [
+                    {
+                      "name": "posixpath",
+                      "self_us": 135,
+                      "cumulative_us": 448,
+                      "children": [
+                        {
+                          "name": "errno",
+                          "self_us": 52,
+                          "cumulative_us": 52,
+                          "children": []
+                        },
+                        {
+                          "name": "posix",
+                          "self_us": 147,
+                          "cumulative_us": 147,
+                          "children": []
+                        },
+                        {
+                          "name": "posix",
+                          "self_us": 115,
+                          "cumulative_us": 115,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "unittest.main",
+              "self_us": 323,
+              "cumulative_us": 1528,
+              "children": [
+                {
+                  "name": "unittest.runner",
+                  "self_us": 296,
+                  "cumulative_us": 1205,
+                  "children": [
+                    {
+                      "name": "unittest.signals",
+                      "self_us": 417,
+                      "cumulative_us": 909,
+                      "children": [
+                        {
+                          "name": "signal",
+                          "self_us": 493,
+                          "cumulative_us": 493,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "asyncio",
+          "self_us": 555,
+          "cumulative_us": 42704,
+          "children": [
+            {
+              "name": "asyncio.base_events",
+              "self_us": 1041,
+              "cumulative_us": 32146,
+              "children": [
+                {
+                  "name": "concurrent.futures",
+                  "self_us": 328,
+                  "cumulative_us": 4108,
+                  "children": [
+                    {
+                      "name": "concurrent",
+                      "self_us": 278,
+                      "cumulative_us": 278,
+                      "children": []
+                    },
+                    {
+                      "name": "concurrent.futures._base",
+                      "self_us": 602,
+                      "cumulative_us": 3503,
+                      "children": [
+                        {
+                          "name": "logging",
+                          "self_us": 1655,
+                          "cumulative_us": 2902,
+                          "children": [
+                            {
+                              "name": "string",
+                              "self_us": 575,
+                              "cumulative_us": 615,
+                              "children": [
+                                {
+                                  "name": "_string",
+                                  "self_us": 40,
+                                  "cumulative_us": 40,
+                                  "children": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "threading",
+                              "self_us": 584,
+                              "cumulative_us": 584,
+                              "children": []
+                            },
+                            {
+                              "name": "atexit",
+                              "self_us": 49,
+                              "cumulative_us": 49,
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "socket",
+                  "self_us": 933,
+                  "cumulative_us": 5707,
+                  "children": [
+                    {
+                      "name": "_socket",
+                      "self_us": 3669,
+                      "cumulative_us": 3669,
+                      "children": []
+                    },
+                    {
+                      "name": "selectors",
+                      "self_us": 573,
+                      "cumulative_us": 1106,
+                      "children": [
+                        {
+                          "name": "select",
+                          "self_us": 533,
+                          "cumulative_us": 533,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "subprocess",
+                  "self_us": 650,
+                  "cumulative_us": 1632,
+                  "children": [
+                    {
+                      "name": "locale",
+                      "self_us": 733,
+                      "cumulative_us": 786,
+                      "children": [
+                        {
+                          "name": "_locale",
+                          "self_us": 53,
+                          "cumulative_us": 53,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "fcntl",
+                      "self_us": 160,
+                      "cumulative_us": 160,
+                      "children": []
+                    },
+                    {
+                      "name": "msvcrt",
+                      "self_us": 38,
+                      "cumulative_us": 38,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "name": "ssl",
+                  "self_us": 2148,
+                  "cumulative_us": 9904,
+                  "children": [
+                    {
+                      "name": "_ssl",
+                      "self_us": 6833,
+                      "cumulative_us": 6833,
+                      "children": []
+                    },
+                    {
+                      "name": "base64",
+                      "self_us": 559,
+                      "cumulative_us": 924,
+                      "children": [
+                        {
+                          "name": "struct",
+                          "self_us": 257,
+                          "cumulative_us": 322,
+                          "children": [
+                            {
+                              "name": "_struct",
+                              "self_us": 65,
+                              "cumulative_us": 65,
+                              "children": []
+                            }
+                          ]
+                        },
+                        {
+                          "name": "binascii",
+                          "self_us": 45,
+                          "cumulative_us": 45,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "asyncio.constants",
+                  "self_us": 326,
+                  "cumulative_us": 326,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.coroutines",
+                  "self_us": 219,
+                  "cumulative_us": 219,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.events",
+                  "self_us": 516,
+                  "cumulative_us": 2447,
+                  "children": [
+                    {
+                      "name": "contextvars",
+                      "self_us": 257,
+                      "cumulative_us": 292,
+                      "children": [
+                        {
+                          "name": "_contextvars",
+                          "self_us": 35,
+                          "cumulative_us": 35,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "asyncio.format_helpers",
+                      "self_us": 212,
+                      "cumulative_us": 212,
+                      "children": []
+                    },
+                    {
+                      "name": "_asyncio",
+                      "self_us": 720,
+                      "cumulative_us": 1429,
+                      "children": [
+                        {
+                          "name": "asyncio.base_futures",
+                          "self_us": 241,
+                          "cumulative_us": 241,
+                          "children": []
+                        },
+                        {
+                          "name": "asyncio.exceptions",
+                          "self_us": 256,
+                          "cumulative_us": 256,
+                          "children": []
+                        },
+                        {
+                          "name": "asyncio.base_tasks",
+                          "self_us": 213,
+                          "cumulative_us": 213,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "asyncio.futures",
+                  "self_us": 300,
+                  "cumulative_us": 300,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.protocols",
+                  "self_us": 253,
+                  "cumulative_us": 253,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.sslproto",
+                  "self_us": 596,
+                  "cumulative_us": 1242,
+                  "children": [
+                    {
+                      "name": "asyncio.transports",
+                      "self_us": 440,
+                      "cumulative_us": 440,
+                      "children": []
+                    },
+                    {
+                      "name": "asyncio.log",
+                      "self_us": 207,
+                      "cumulative_us": 207,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "name": "asyncio.staggered",
+                  "self_us": 290,
+                  "cumulative_us": 4393,
+                  "children": [
+                    {
+                      "name": "asyncio.locks",
+                      "self_us": 451,
+                      "cumulative_us": 656,
+                      "children": [
+                        {
+                          "name": "asyncio.mixins",
+                          "self_us": 205,
+                          "cumulative_us": 205,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "asyncio.tasks",
+                      "self_us": 609,
+                      "cumulative_us": 3448,
+                      "children": [
+                        {
+                          "name": "asyncio.queues",
+                          "self_us": 303,
+                          "cumulative_us": 303,
+                          "children": []
+                        },
+                        {
+                          "name": "asyncio.timeouts",
+                          "self_us": 609,
+                          "cumulative_us": 2537,
+                          "children": [
+                            {
+                              "name": "typing",
+                              "self_us": 1886,
+                              "cumulative_us": 1928,
+                              "children": [
+                                {
+                                  "name": "_typing",
+                                  "self_us": 42,
+                                  "cumulative_us": 42,
+                                  "children": []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "asyncio.trsock",
+                  "self_us": 579,
+                  "cumulative_us": 579,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "asyncio.runners",
+              "self_us": 470,
+              "cumulative_us": 470,
+              "children": []
+            },
+            {
+              "name": "asyncio.streams",
+              "self_us": 477,
+              "cumulative_us": 477,
+              "children": []
+            },
+            {
+              "name": "asyncio.subprocess",
+              "self_us": 459,
+              "cumulative_us": 459,
+              "children": []
+            },
+            {
+              "name": "asyncio.taskgroups",
+              "self_us": 288,
+              "cumulative_us": 288,
+              "children": []
+            },
+            {
+              "name": "asyncio.threads",
+              "self_us": 207,
+              "cumulative_us": 207,
+              "children": []
+            },
+            {
+              "name": "asyncio.windows_events",
+              "self_us": 649,
+              "cumulative_us": 8106,
+              "children": [
+                {
+                  "name": "_overlapped",
+                  "self_us": 1771,
+                  "cumulative_us": 1771,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.base_subprocess",
+                  "self_us": 434,
+                  "cumulative_us": 434,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.proactor_events",
+                  "self_us": 571,
+                  "cumulative_us": 571,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.selector_events",
+                  "self_us": 609,
+                  "cumulative_us": 609,
+                  "children": []
+                },
+                {
+                  "name": "asyncio.windows_utils",
+                  "self_us": 488,
+                  "cumulative_us": 4073,
+                  "children": [
+                    {
+                      "name": "tempfile",
+                      "self_us": 506,
+                      "cumulative_us": 3586,
+                      "children": [
+                        {
+                          "name": "shutil",
+                          "self_us": 776,
+                          "cumulative_us": 3080,
+                          "children": [
+                            {
+                              "name": "zlib",
+                              "self_us": 76,
+                              "cumulative_us": 76,
+                              "children": []
+                            },
+                            {
+                              "name": "bz2",
+                              "self_us": 377,
+                              "cumulative_us": 1312,
+                              "children": [
+                                {
+                                  "name": "_compression",
+                                  "self_us": 317,
+                                  "cumulative_us": 317,
+                                  "children": []
+                                },
+                                {
+                                  "name": "_bz2",
+                                  "self_us": 618,
+                                  "cumulative_us": 618,
+                                  "children": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "lzma",
+                              "self_us": 345,
+                              "cumulative_us": 917,
+                              "children": [
+                                {
+                                  "name": "_lzma",
+                                  "self_us": 572,
+                                  "cumulative_us": 572,
+                                  "children": []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "pkgutil",
+          "self_us": 472,
+          "cumulative_us": 941,
+          "children": [
+            {
+              "name": "importlib.util",
+              "self_us": 151,
+              "cumulative_us": 469,
+              "children": [
+                {
+                  "name": "importlib._abc",
+                  "self_us": 319,
+                  "cumulative_us": 319,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "xml.etree.ElementTree",
+      "self_us": 983,
+      "cumulative_us": 3263,
+      "children": [
+        {
+          "name": "xml.etree",
+          "self_us": 316,
+          "cumulative_us": 601,
+          "children": [
+            {
+              "name": "xml",
+              "self_us": 285,
+              "cumulative_us": 285,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "xml.etree.ElementPath",
+          "self_us": 475,
+          "cumulative_us": 475,
+          "children": []
+        },
+        {
+          "name": "_elementtree",
+          "self_us": 615,
+          "cumulative_us": 1205,
+          "children": [
+            {
+              "name": "pyexpat",
+              "self_us": 590,
+              "cumulative_us": 590,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "concurrent.futures.thread",
+      "self_us": 340,
+      "cumulative_us": 1619,
+      "children": [
+        {
+          "name": "queue",
+          "self_us": 640,
+          "cumulative_us": 1280,
+          "children": [
+            {
+              "name": "_queue",
+              "self_us": 641,
+              "cumulative_us": 641,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "email.message",
+      "self_us": 759,
+      "cumulative_us": 8247,
+      "children": [
+        {
+          "name": "email",
+          "self_us": 436,
+          "cumulative_us": 436,
+          "children": []
+        },
+        {
+          "name": "quopri",
+          "self_us": 363,
+          "cumulative_us": 363,
+          "children": []
+        },
+        {
+          "name": "email.utils",
+          "self_us": 518,
+          "cumulative_us": 3839,
+          "children": [
+            {
+              "name": "datetime",
+              "self_us": 287,
+              "cumulative_us": 404,
+              "children": [
+                {
+                  "name": "_datetime",
+                  "self_us": 118,
+                  "cumulative_us": 118,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "urllib.parse",
+              "self_us": 1008,
+              "cumulative_us": 2579,
+              "children": [
+                {
+                  "name": "urllib",
+                  "self_us": 263,
+                  "cumulative_us": 263,
+                  "children": []
+                },
+                {
+                  "name": "ipaddress",
+                  "self_us": 1308,
+                  "cumulative_us": 1308,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "email._parseaddr",
+              "self_us": 340,
+              "cumulative_us": 340,
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "email.errors",
+          "self_us": 480,
+          "cumulative_us": 480,
+          "children": []
+        },
+        {
+          "name": "email._policybase",
+          "self_us": 361,
+          "cumulative_us": 1842,
+          "children": [
+            {
+              "name": "email.header",
+              "self_us": 558,
+              "cumulative_us": 1482,
+              "children": [
+                {
+                  "name": "email.quoprimime",
+                  "self_us": 278,
+                  "cumulative_us": 278,
+                  "children": []
+                },
+                {
+                  "name": "email.base64mime",
+                  "self_us": 198,
+                  "cumulative_us": 198,
+                  "children": []
+                },
+                {
+                  "name": "email.charset",
+                  "self_us": 261,
+                  "cumulative_us": 449,
+                  "children": [
+                    {
+                      "name": "email.encoders",
+                      "self_us": 188,
+                      "cumulative_us": 188,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "email._encoded_words",
+          "self_us": 316,
+          "cumulative_us": 316,
+          "children": []
+        },
+        {
+          "name": "email.iterators",
+          "self_us": 215,
+          "cumulative_us": 215,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
