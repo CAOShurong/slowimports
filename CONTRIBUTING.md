@@ -15,7 +15,7 @@ and what happened when you moved the import.
 ## Getting set up
 
 ```bash
-git clone https://github.com/TeresaCSR/slowimports
+git clone https://github.com/CAOShurong/slowimports
 cd slowimports
 python -m pip install -e ".[dev]"
 ```

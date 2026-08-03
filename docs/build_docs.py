@@ -163,7 +163,7 @@ def build() -> str:
         render_png(capture(width, extra, colour=True), out)
         # An absolute URL so the image also renders on the PyPI project page,
         # where relative links do not resolve.
-        url = f"https://raw.githubusercontent.com/TeresaCSR/slowimports/main/docs/{name}.png"
+        url = f"https://raw.githubusercontent.com/CAOShurong/slowimports/main/docs/{name}.png"
         text = text.replace(placeholder, f"![{name}]({url})")
 
     for placeholder, (width, extra) in BLOCKS.items():

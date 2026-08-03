@@ -9,7 +9,7 @@ description = "Find out why your Python program is slow to start, and what to do
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
-authors = [{ name = "Shurong Cao", email = "170531907+TeresaCSR@users.noreply.github.com" }]
+authors = [{ name = "Shurong Cao", email = "170531907+CAOShurong@users.noreply.github.com" }]
 keywords = [
     "import", "importtime", "startup", "performance", "profiler", "profiling",
     "cli", "lazy-import", "optimization", "terminal", "benchmark",
@@ -44,9 +44,9 @@ dev = ["pytest>=7", "ruff>=0.6"]
 slowimports = "slowimports.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/TeresaCSR/slowimports"
-Issues = "https://github.com/TeresaCSR/slowimports/issues"
-Changelog = "https://github.com/TeresaCSR/slowimports/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/CAOShurong/slowimports"
+Issues = "https://github.com/CAOShurong/slowimports/issues"
+Changelog = "https://github.com/CAOShurong/slowimports/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/slowimports/__init__.py"

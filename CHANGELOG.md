@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-03
+
+### Fixed
+
+- Repository and image URLs, after the GitHub account was renamed from
+  `TeresaCSR` to `CAOShurong`. GitHub redirects repository links, but
+  `raw.githubusercontent.com` does not, so the screenshots in the project
+  description on PyPI stopped loading. A published description is a snapshot,
+  which is why this needs a release rather than a commit.
+
 ## [0.1.0] — 2026-08-03
 
 First release.
@@ -43,5 +53,6 @@ First release.
   whose default encoding cannot carry block characters.
 - **Zero dependencies.**
 
-[Unreleased]: https://github.com/TeresaCSR/slowimports/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/TeresaCSR/slowimports/releases/tag/v0.1.0
+[Unreleased]: https://github.com/CAOShurong/slowimports/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.1
+[0.1.0]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.0

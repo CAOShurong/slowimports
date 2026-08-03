@@ -10,7 +10,7 @@ branch, pulling half a dependency tree in before `--help` can print.
 hundred lines of nested output. slowimports reads that, and then reads *your
 source*, and tells you which imports you can actually move:
 
-![advice](https://raw.githubusercontent.com/TeresaCSR/slowimports/main/docs/advice.png)
+![advice](https://raw.githubusercontent.com/CAOShurong/slowimports/main/docs/advice.png)
 
 That last part is the point. Knowing `unittest.mock` costs 64 ms is trivia;
 knowing it is only referenced inside one function, and that moving it there
@@ -53,7 +53,7 @@ Where the time goes, by package
   ssl       ████████▊                                                2.15 ms  2.1%
 ```
 
-![packages](https://raw.githubusercontent.com/TeresaCSR/slowimports/main/docs/packages.png)
+![packages](https://raw.githubusercontent.com/CAOShurong/slowimports/main/docs/packages.png)
 
 Add `--advice` for the analysis, `--modules` to rank individual modules,
 `--tree` for an icicle chart of the import graph, or `--all` for everything.
