@@ -2,6 +2,11 @@
 
 **Find out why your Python program is slow to start — and what to do about it.**
 
+[![CI](https://github.com/CAOShurong/slowimports/actions/workflows/ci.yml/badge.svg)](https://github.com/CAOShurong/slowimports/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/slowimports.svg)](https://pypi.org/project/slowimports/)
+[![Python](https://img.shields.io/pypi/pyversions/slowimports.svg)](https://pypi.org/project/slowimports/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Every Python CLI eventually gets slow to launch, and it is almost never the
 code that runs. It is an import at the top of a file that is only needed on one
 branch, pulling half a dependency tree in before `--help` can print.
