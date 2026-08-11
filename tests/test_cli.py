@@ -12,20 +12,46 @@ import io
 import json
 import os
 import re
+import shutil
+import sys
+import sysconfig
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from types import SimpleNamespace
 from typing import ClassVar
+from unittest.mock import patch
 
 from slowimports.cli import main, split_passthrough
 from slowimports.palette import Palette
 from slowimports.parse import parse_importtime
 from slowimports.render import Renderer, format_ms, truncate
-from slowimports.runner import RunnerError, Target, resolve, run_profile
+from slowimports.runner import (
+    RunnerError,
+    Target,
+    _console_script_from_metadata,
+    resolve,
+    run_profile,
+)
 
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXAMPLE = os.path.join(os.path.dirname(HERE), "examples", "slow_cli.py")
+PIP_COMMAND = shutil.which("pip")
+WINDOWS_PIP_FIXTURE = bool(
+    os.name == "nt"
+    and PIP_COMMAND
+    and os.path.normcase(os.path.realpath(os.path.dirname(PIP_COMMAND)))
+    == os.path.normcase(os.path.realpath(sysconfig.get_path("scripts")))
+)
+VERSIONED_PIP_NAME = f"pip{sys.version_info.major}.{sys.version_info.minor}"
+VERSIONED_PIP_COMMAND = shutil.which(VERSIONED_PIP_NAME)
+WINDOWS_VERSIONED_PIP_FIXTURE = bool(
+    os.name == "nt"
+    and VERSIONED_PIP_COMMAND
+    and os.path.normcase(os.path.realpath(os.path.dirname(VERSIONED_PIP_COMMAND)))
+    == os.path.normcase(os.path.realpath(sysconfig.get_path("scripts")))
+)
 
 
 def run(argv: list[str]) -> tuple[int, str, str]:
@@ -94,6 +120,100 @@ class TestRunner(unittest.TestCase):
     def test_arguments_reach_the_target(self):
         result = run_profile(resolve("import sys; print(sys.argv[1:])", [], kind="code"))
         self.assertIn("[]", result.stdout)
+
+    @unittest.skipUnless(WINDOWS_PIP_FIXTURE, "matching Windows pip fixture")
+    def test_windows_console_launcher_resolves_its_installed_entry_point(self):
+        # pip creates a real console_scripts .exe launcher on Windows. The
+        # launcher's Python source is embedded in the executable, so reading
+        # it like a POSIX wrapper cannot recover the module to import.
+        result = run_profile(resolve("pip", []))
+        self.assertTrue(result.ok)
+        self.assertIsNotNone(parse_importtime(result.stderr).by_name("pip._internal.cli.main"))
+
+    @unittest.skipUnless(
+        WINDOWS_VERSIONED_PIP_FIXTURE, "matching versioned Windows pip fixture"
+    )
+    def test_windows_versioned_launcher_resolves_its_embedded_wrapper(self):
+        # pip's installer creates pip3.x.exe even though that alias is not a
+        # declared console_scripts entry point. Its bounded embedded wrapper
+        # is the only source that identifies the module the launcher imports.
+        result = run_profile(resolve(VERSIONED_PIP_NAME, []))
+        self.assertTrue(result.ok)
+        self.assertIsNotNone(parse_importtime(result.stderr).by_name("pip._internal.cli.main"))
+
+
+class TestConsoleScriptMetadata(unittest.TestCase):
+    @patch("slowimports.runner.subprocess.run")
+    def test_preserves_dots_in_a_console_script_name(self, subprocess_run):
+        scripts = r"C:\venv\Scripts"
+        subprocess_run.return_value = SimpleNamespace(
+            returncode=0,
+            stdout=(
+                "slowimports-entry-point:"
+                + json.dumps(
+                    {
+                        "command_dir": scripts,
+                        "scripts_dir": scripts,
+                        "matches": [
+                            {"distribution": "pip", "module": "pip._internal.cli.main"}
+                        ],
+                    }
+                )
+            ),
+        )
+
+        module = _console_script_from_metadata(
+            "pip3.13", r"C:\venv\Scripts\pip3.13.exe", "python", timeout=5
+        )
+
+        self.assertEqual(module, "pip._internal.cli.main")
+        self.assertEqual(subprocess_run.call_args.args[0][3], "pip3.13")
+
+    @patch("slowimports.runner.subprocess.run")
+    def test_refuses_a_launcher_from_a_different_interpreter(self, subprocess_run):
+        subprocess_run.return_value = SimpleNamespace(
+            returncode=0,
+            stdout=(
+                "slowimports-entry-point:"
+                + json.dumps(
+                    {
+                        "command_dir": r"C:\venv-one\Scripts",
+                        "scripts_dir": r"C:\venv-two\Scripts",
+                        "matches": [{"distribution": "demo", "module": "demo.cli"}],
+                    }
+                )
+            ),
+        )
+
+        with self.assertRaisesRegex(RunnerError, "Use --python"):
+            _console_script_from_metadata(
+                "demo", r"C:\venv-one\Scripts\demo.exe", "python", timeout=5
+            )
+
+    @patch("slowimports.runner.subprocess.run")
+    def test_refuses_ambiguous_entry_point_metadata(self, subprocess_run):
+        scripts = r"C:\venv\Scripts"
+        subprocess_run.return_value = SimpleNamespace(
+            returncode=0,
+            stdout=(
+                "slowimports-entry-point:"
+                + json.dumps(
+                    {
+                        "command_dir": scripts,
+                        "scripts_dir": scripts,
+                        "matches": [
+                            {"distribution": "first", "module": "first.cli"},
+                            {"distribution": "second", "module": "second.cli"},
+                        ],
+                    }
+                )
+            ),
+        )
+
+        with self.assertRaisesRegex(RunnerError, "multiple distributions"):
+            _console_script_from_metadata(
+                "demo", r"C:\venv\Scripts\demo.exe", "python", timeout=5
+            )
 
 
 class TestRendering(unittest.TestCase):

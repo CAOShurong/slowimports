@@ -40,6 +40,24 @@ $ slowimports mytool                 # an installed command
 $ slowimports -c 'import pandas'     # a single import
 ```
 
+### Installed commands are imported, not run
+
+For an installed command such as `pip`, slowimports finds the module named by
+its `console_scripts` entry point and imports that module under
+`-X importtime`. It deliberately does **not** call the entry-point function:
+that keeps profiling from performing the command's real work or other side
+effects. The result covers startup imports, not wrapper overhead, argument
+parsing, or work done after the entry function starts.
+
+On Windows these commands are native `.exe` launchers, so their module name
+cannot be read as Python source. slowimports instead reads the standard
+entry-point metadata with the selected interpreter and, for versioned aliases
+such as `pip3.13`, the launcher's bounded embedded Python wrapper. It refuses
+to guess if those sources conflict, if the launcher is outside that
+interpreter's `Scripts` directory, or if more than one installed distribution
+declares the same command. If the command belongs to another environment, put
+it on `PATH` and pass that environment's Python with `--python`.
+
 The default view groups by package, because that is the level you act on —
 nobody removes `numpy.linalg`, they remove `numpy`:
 
