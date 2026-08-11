@@ -15,13 +15,53 @@ loaded.
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
 import sys
+import zipfile
+from contextlib import suppress
 from dataclasses import dataclass
 
 __all__ = ["RunResult", "RunnerError", "Target", "run_profile"]
+
+
+_ENTRY_POINT_MARKER = "slowimports-entry-point:"
+_ENTRY_POINT_PROBE = r"""
+import json
+import os
+import sys
+import sysconfig
+from importlib.metadata import distributions
+
+name = sys.argv[1].casefold()
+command_dir = os.path.normcase(os.path.realpath(os.path.dirname(sys.argv[2])))
+scripts_dir = os.path.normcase(os.path.realpath(sysconfig.get_path("scripts") or ""))
+matches = []
+for distribution in distributions():
+    for entry_point in distribution.entry_points:
+        if entry_point.group != "console_scripts":
+            continue
+        if entry_point.name.casefold() != name:
+            continue
+        matches.append(
+            {
+                "distribution": distribution.metadata.get("Name", "unknown"),
+                "module": entry_point.value.partition(":")[0].strip(),
+            }
+        )
+print(
+    "slowimports-entry-point:"
+    + json.dumps(
+        {
+            "command_dir": command_dir,
+            "scripts_dir": scripts_dir,
+            "matches": matches,
+        }
+    )
+)
+"""
 
 
 class RunnerError(RuntimeError):
@@ -91,7 +131,93 @@ def resolve(raw: str, args: list[str], *, kind: str | None = None) -> Target:
     return Target("module", raw, args)
 
 
-def _console_script_module(command: str) -> str | None:
+def _console_script_from_metadata(
+    command: str,
+    path: str,
+    python: str,
+    *,
+    timeout: float,
+) -> str | None:
+    """Resolve an opaque launcher through the selected Python's metadata.
+
+    Modern Windows installers use a native ``.exe`` launcher, so there is no
+    wrapper source to read. Querying ``console_scripts`` metadata is the
+    portable alternative, but only when the command lives in that
+    interpreter's scripts directory. Otherwise a same-named entry point from
+    another environment could make us silently profile the wrong module.
+
+    The query runs in a separate process. It reads metadata only: the entry
+    point's callable is never loaded or invoked.
+    """
+    name = os.path.basename(command)
+    if name.casefold().endswith(".exe"):
+        name = name[:-4]
+    resolution_timeout = min(max(timeout, 1.0), 15.0)
+    try:
+        completed = subprocess.run(
+            [python, "-c", _ENTRY_POINT_PROBE, name, os.path.abspath(path)],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=resolution_timeout,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise RunnerError(f"could not run {python!r}: {exc}") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RunnerError(
+            f"could not query console-script metadata with {python!r} "
+            f"within {resolution_timeout:g}s"
+        ) from exc
+
+    payload = None
+    for line in reversed(completed.stdout.splitlines()):
+        if line.startswith(_ENTRY_POINT_MARKER):
+            with suppress(ValueError):
+                payload = json.loads(line[len(_ENTRY_POINT_MARKER) :])
+            break
+    if completed.returncode != 0 or not isinstance(payload, dict):
+        raise RunnerError(
+            f"could not query console-script metadata with {python!r} "
+            f"(exit code {completed.returncode})"
+        )
+
+    command_dir = payload.get("command_dir")
+    scripts_dir = payload.get("scripts_dir")
+    if not command_dir or command_dir != scripts_dir:
+        raise RunnerError(
+            f"console script {command!r} is in {command_dir or 'an unknown directory'}, "
+            f"but {python!r} installs scripts in {scripts_dir or 'an unknown directory'}.\n"
+            "  Use --python with the interpreter that installed the command."
+        )
+
+    matches = payload.get("matches")
+    if not isinstance(matches, list) or not matches:
+        return None
+    if len(matches) != 1:
+        providers = ", ".join(
+            str(match.get("distribution", "unknown"))
+            for match in matches
+            if isinstance(match, dict)
+        )
+        raise RunnerError(
+            f"console script {command!r} is declared by multiple distributions: "
+            f"{providers or 'unknown'}.\n"
+            "  Refusing to guess which module the launcher imports."
+        )
+
+    match = matches[0]
+    module = match.get("module") if isinstance(match, dict) else None
+    return module if isinstance(module, str) and module else None
+
+
+def _console_script_module(
+    command: str,
+    python: str,
+    *,
+    timeout: float,
+) -> str | None:
     """Find the module a console script would run, without running it.
 
     Entry-point wrappers are generated files that import a function and call
@@ -108,15 +234,43 @@ def _console_script_module(command: str) -> str | None:
     except OSError:
         return None
 
-    # Windows wrappers are zip-embedded executables; the console script's own
-    # source is not readable this way.
+    # Windows wrappers are zip-embedded executables; their Python source is
+    # not readable as the leading MZ bytes. zipfile can read the embedded
+    # __main__.py used by distlib, including versioned aliases such as
+    # pip3.13 that installers generate without declaring another entry point.
+    # Standard metadata remains the portable fallback for other launchers.
     if blob[:2] == b"MZ":
-        return None
+        wrapper_module = _console_script_zip_module(path)
+        metadata_module = _console_script_from_metadata(command, path, python, timeout=timeout)
+        if wrapper_module and metadata_module and wrapper_module != metadata_module:
+            raise RunnerError(
+                f"console script {command!r} imports {wrapper_module!r}, but its "
+                f"package metadata declares {metadata_module!r}.\n"
+                "  Refusing to profile conflicting launcher data."
+            )
+        return wrapper_module or metadata_module
     try:
         text = blob.decode("utf-8", errors="replace")
     except Exception:
         return None
 
+    return _module_from_wrapper(text)
+
+
+def _console_script_zip_module(path: str) -> str | None:
+    """Read the bounded Python wrapper embedded in a distlib launcher."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            info = archive.getinfo("__main__.py")
+            if info.file_size > 64 * 1024:
+                return None
+            text = archive.read(info).decode("utf-8", errors="replace")
+    except (KeyError, OSError, RuntimeError, zipfile.BadZipFile):
+        return None
+    return _module_from_wrapper(text)
+
+
+def _module_from_wrapper(text: str) -> str | None:
     for line in text.splitlines():
         line = line.strip()
         if line.startswith("from ") and " import " in line:
@@ -137,7 +291,7 @@ def run_profile(
     python = python or sys.executable
 
     if target.kind == "console":
-        module = _console_script_module(target.value)
+        module = _console_script_module(target.value, python, timeout=timeout)
         if module is None:
             raise RunnerError(
                 f"Could not read the console script {target.value!r} to find its "
@@ -148,7 +302,9 @@ def run_profile(
         # Import the module without running it: the question is what importing
         # costs, and running the tool's main function would measure something
         # else entirely, possibly with side effects.
-        target = Target("code", f"import {module}", target.args)
+        # __import__ takes a quoted string, so locally modified metadata cannot
+        # inject code into the command used for measurement.
+        target = Target("code", f"__import__({module!r})", target.args)
 
     argv = target.interpreter_argv(python)
     run_env = dict(os.environ)

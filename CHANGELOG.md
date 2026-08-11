@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-11
+
+### Fixed
+
+- Installed `console_scripts` commands can now be profiled on Windows. Their
+  native `.exe` launchers are resolved through the selected Python
+  interpreter's standard package metadata or a bounded embedded wrapper,
+  including installer-generated aliases such as `pip3.13`.
+- Console-script resolution now refuses an interpreter mismatch or ambiguous
+  or conflicting launcher data rather than silently profiling a same-named
+  module from the wrong environment. Entry-point functions are never loaded
+  or run.
+
 ## [0.1.1] — 2026-08-03
 
 ### Fixed
@@ -53,6 +66,7 @@ First release.
   whose default encoding cannot carry block characters.
 - **Zero dependencies.**
 
-[Unreleased]: https://github.com/CAOShurong/slowimports/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/CAOShurong/slowimports/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/CAOShurong/slowimports/releases/tag/v0.2.0
 [0.1.1]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.1
 [0.1.0]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.0
