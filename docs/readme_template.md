@@ -134,6 +134,24 @@ Colour degrades from 24-bit through 256 and 16 to none, and honours
 `NO_COLOR`. Output is plain text when redirected, so `slowimports app.py >
 report.txt` gives you a clean file.
 
+A target that exits nonzero still has a useful partial import profile, so
+slowimports prints or emits that profile and then exits `1`. This is the same
+for terminal and `--json` output: a machine consumer must not accept a profile
+as a successful startup merely because imports happened before the failure.
+
+### Measurement limits
+
+- CPython documents that `-X importtime` output can be broken when imports run
+  concurrently in multiple threads. SlowImports cannot recover events that the
+  interpreter omitted or interleaved, so measure startup before worker threads
+  begin, or arrange for the imports being investigated to run serially.
+- A subprocess is a separate interpreter and its imports are not part of the
+  parent's profile. Do not make a child emit another `-X importtime` trace into
+  the same stderr stream; combined traces do not describe one import tree.
+- Import timings vary with filesystem caches, bytecode, the Python build, and
+  the machine. Compare repeated runs in the same environment rather than
+  treating one measurement as a portable benchmark.
+
 ## About the colours
 
 The icicle chart's eight hues are a documented palette, checked by script for

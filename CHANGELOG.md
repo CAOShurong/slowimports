@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-08-12
+
+### Fixed
+
+- `--json` now returns a nonzero status when the profiled target fails, just
+  like the terminal renderer, while still emitting the usable import profile.
+- Captured target stdout and stderr now default to UTF-8 on every platform,
+  matching the runner's decoder. This prevents Unicode output from failing a
+  target or becoming mojibake on non-UTF-8 Windows locales. An explicitly set
+  `PYTHONIOENCODING` is still honoured.
+
+### Documented
+
+- CPython warns that `-X importtime` output can be broken for multithreaded
+  imports; SlowImports cannot reconstruct missing or interleaved events.
+- Child-process imports are outside the parent profile unless the child emits
+  its own trace, and combining multiple traces is unsupported.
+
 ## [0.2.0] — 2026-08-11
 
 ### Fixed
@@ -66,7 +84,8 @@ First release.
   whose default encoding cannot carry block characters.
 - **Zero dependencies.**
 
-[Unreleased]: https://github.com/CAOShurong/slowimports/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/CAOShurong/slowimports/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/CAOShurong/slowimports/releases/tag/v0.2.1
 [0.2.0]: https://github.com/CAOShurong/slowimports/releases/tag/v0.2.0
 [0.1.1]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.1
 [0.1.0]: https://github.com/CAOShurong/slowimports/releases/tag/v0.1.0

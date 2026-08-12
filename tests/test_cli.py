@@ -24,7 +24,7 @@ from unittest.mock import patch
 
 from slowimports.cli import main, split_passthrough
 from slowimports.palette import Palette
-from slowimports.parse import parse_importtime
+from slowimports.parse import parse_importtime, strip_importtime
 from slowimports.render import Renderer, format_ms, truncate
 from slowimports.runner import (
     RunnerError,
@@ -105,6 +105,26 @@ class TestRunner(unittest.TestCase):
     def test_target_stdout_is_captured_separately(self):
         result = run_profile(resolve("print('hello')", [], kind="code"))
         self.assertIn("hello", result.stdout)
+
+    def test_target_unicode_streams_match_the_utf8_capture_decoder(self):
+        result = run_profile(
+            resolve(
+                "import sys; print('值✓'); sys.stderr.write('错误 Ω\\n')",
+                [],
+                kind="code",
+            )
+        )
+        self.assertTrue(result.ok, strip_importtime(result.stderr))
+        self.assertEqual(result.stdout, "值✓\n")
+        self.assertEqual(strip_importtime(result.stderr), "错误 Ω")
+
+    def test_an_explicit_target_stream_encoding_is_preserved(self):
+        result = run_profile(
+            resolve("print('值✓')", [], kind="code"),
+            env={"PYTHONIOENCODING": "ascii:backslashreplace"},
+        )
+        self.assertTrue(result.ok)
+        self.assertEqual(result.stdout, r"\u503c\u2713" + "\n")
 
     def test_a_failing_target_still_yields_a_profile(self):
         # The imports that happened before the failure are still measurable,
@@ -293,6 +313,13 @@ class TestEndToEnd(unittest.TestCase):
     def test_json_output_round_trips(self):
         code, out, _ = run(["--json", "-c", "import json"])
         self.assertEqual(code, 0)
+        data = json.loads(out)
+        self.assertIn("roots", data)
+        self.assertGreater(data["total_us"], 0)
+
+    def test_json_output_preserves_a_failing_targets_exit_status(self):
+        code, out, _ = run(["--json", "-m", "definitely_not_a_module_12345"])
+        self.assertEqual(code, 1)
         data = json.loads(out)
         self.assertIn("roots", data)
         self.assertGreater(data["total_us"], 0)

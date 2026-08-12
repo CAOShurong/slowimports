@@ -313,6 +313,12 @@ def run_profile(
     # Bytecode writing is one-off work that would land in whichever module
     # happened to be compiled first, so it is disabled for a fair measurement.
     run_env.setdefault("PYTHONDONTWRITEBYTECODE", "1")
+    # The target writes into pipes that we decode as UTF-8 below. On Windows,
+    # Python otherwise chooses the locale encoding for a pipe, which can make
+    # an otherwise successful target fail merely for printing Unicode. Honour
+    # an explicit caller choice, but make our encoder and decoder agree by
+    # default.
+    run_env.setdefault("PYTHONIOENCODING", "utf-8")
 
     try:
         completed = subprocess.run(
