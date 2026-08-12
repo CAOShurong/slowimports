@@ -339,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         json.dump(tree.as_dict(), sys.stdout, indent=2)
         sys.stdout.write("\n")
-        return 0
+        return 0 if returncode == 0 else 1
 
     if args.save:
         try:
