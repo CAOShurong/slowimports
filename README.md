@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/CAOShurong/slowimports/actions/workflows/ci.yml/badge.svg)](https://github.com/CAOShurong/slowimports/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/slowimports.svg)](https://pypi.org/project/slowimports/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/slowimports?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/slowimports/)
 [![Python](https://img.shields.io/pypi/pyversions/slowimports.svg)](https://pypi.org/project/slowimports/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
