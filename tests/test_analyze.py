@@ -150,6 +150,39 @@ class TestNotDeferrable(unittest.TestCase):
         source = "def f():\n    import json\n    return json\n"
         self.assertEqual(analyze_source(source), [])
 
+    def test_type_checking_import_is_not_runtime_advice(self):
+        source = (
+            "from typing import TYPE_CHECKING\n"
+            "if TYPE_CHECKING:\n"
+            "    import pandas\n"
+            "def f(x):\n"
+            "    return x\n"
+        )
+        self.assertNotIn("pandas", bindings(source))
+        self.assertNotIn("pandas", deferrable(source))
+
+    def test_typing_attribute_type_checking_is_the_same(self):
+        source = (
+            "import typing\n"
+            "if typing.TYPE_CHECKING:\n"
+            "    import pandas\n"
+            "def f():\n"
+            "    return typing\n"
+        )
+        self.assertNotIn("pandas", bindings(source))
+        self.assertEqual(deferrable(source), set())
+
+    def test_type_checking_does_not_hide_a_runtime_import(self):
+        source = (
+            "from typing import TYPE_CHECKING\n"
+            "import json\n"
+            "if TYPE_CHECKING:\n"
+            "    import pandas\n"
+            "def f():\n"
+            "    return json.dumps({})\n"
+        )
+        self.assertEqual(deferrable(source), {"json"})
+
 
 class TestUnused(unittest.TestCase):
     def test_unused_is_flagged_separately(self):

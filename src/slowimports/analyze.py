@@ -213,6 +213,16 @@ class _Analyzer(ast.NodeVisitor):
     # Class bodies run during import, so nothing special is needed for them --
     # generic_visit keeps the current depth, which is the correct behaviour.
 
+    def visit_If(self, node: ast.If) -> None:
+        self.visit(node.test)
+        # ``if TYPE_CHECKING:`` is false at runtime. Imports in that body are
+        # not loaded, so they are not advice -- moving them would be nonsense.
+        if not _is_type_checking_test(node.test):
+            for stmt in node.body:
+                self.visit(stmt)
+        for stmt in node.orelse:
+            self.visit(stmt)
+
     # -- uses --------------------------------------------------------------
 
     def visit_Name(self, node: ast.Name) -> None:
@@ -236,6 +246,15 @@ class _Analyzer(ast.NodeVisitor):
     def visit_Global(self, node: ast.Global) -> None:
         # A function declaring ``global json`` may rebind it; treat as unsafe.
         self.shadowed.update(n for n in node.names if n in self.bindings)
+
+
+def _is_type_checking_test(node: ast.expr) -> bool:
+    """True for ``TYPE_CHECKING`` and ``typing.TYPE_CHECKING`` (not ``not``)."""
+    if isinstance(node, ast.Name):
+        return node.id == "TYPE_CHECKING"
+    if isinstance(node, ast.Attribute):
+        return node.attr == "TYPE_CHECKING"
+    return False
 
 
 def _has_future_annotations(tree: ast.Module) -> bool:

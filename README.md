@@ -105,6 +105,7 @@ Disqualifying uses, all of which run at import time:
 | annotations | unless `from __future__ import annotations` makes them strings |
 | rebinding | `json = something_else` later in the file |
 | `global` declarations | the name may be reassigned |
+| `if TYPE_CHECKING:` | those imports never run; they are not reported |
 
 Star imports are never reported: what `from x import *` binds is not knowable
 without importing it, so nothing can be proven about the uses.

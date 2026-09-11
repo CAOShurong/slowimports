@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - README is generated from `docs/readme_template.md` again. The uvx one-liner
   and PyPI downloads badge now live in the template, so `docs/build_docs.py
   --check` stays green.
+- `--advice` no longer treats `if TYPE_CHECKING:` imports as runtime
+  candidates. Those names are not loaded, so suggesting they move would be
+  wrong.
 
 ## [0.2.1] — 2026-08-12
 
