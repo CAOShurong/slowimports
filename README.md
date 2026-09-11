@@ -39,6 +39,7 @@ that is the whole shopping list. Python 3.9+, Linux, macOS and Windows.
 ## Use
 
 ```console
+$ slowimports myscript.py --apply    # rewrite: move those imports
 $ slowimports myscript.py            # a script
 $ slowimports -m pytest              # a module
 $ slowimports mytool                 # an installed command

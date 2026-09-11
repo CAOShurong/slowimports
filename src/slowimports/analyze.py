@@ -43,6 +43,7 @@ class ImportBinding:
     #: The module the cost is attributed to (``numpy``).
     module: str
     lineno: int
+    end_lineno: int
     col_offset: int
     #: The statement as it should be written when moved inside a function.
     statement: str
@@ -110,6 +111,7 @@ class _Analyzer(ast.NodeVisitor):
                         bound_name=bound,
                         module=alias.name,
                         lineno=node.lineno,
+                        end_lineno=node.end_lineno or node.lineno,
                         col_offset=node.col_offset,
                         statement=statement,
                         is_plain_import=True,
@@ -141,6 +143,7 @@ class _Analyzer(ast.NodeVisitor):
                         bound_name=bound,
                         module=node.module,
                         lineno=node.lineno,
+                        end_lineno=node.end_lineno or node.lineno,
                         col_offset=node.col_offset,
                         statement=statement,
                         is_plain_import=False,

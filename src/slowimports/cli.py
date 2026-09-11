@@ -24,6 +24,7 @@ examples:
   slowimports -c 'import pandas'    profile one import
 
   slowimports myscript.py --advice  what to make lazy, and what it saves
+  slowimports myscript.py --apply   rewrite the file (single-name imports only)
   slowimports app.py --save before.json
   slowimports app.py --compare before.json --slower-ms 20
   slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
@@ -71,6 +72,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--advice",
         action="store_true",
         help="read the source and report which imports can be deferred",
+    )
+    view.add_argument(
+        "--apply",
+        action="store_true",
+        help="rewrite the target .py: move deferrable single-name imports into functions",
+    )
+    view.add_argument(
+        "--apply-dry-run",
+        action="store_true",
+        help="print the --apply rewrite without writing the file",
     )
     view.add_argument("--all", action="store_true", help="every view")
     view.add_argument("-n", "--limit", type=int, default=12, metavar="N")
@@ -601,7 +612,8 @@ def main(argv: list[str] | None = None) -> int:
     if show_tree:
         out.append(renderer.heading("Import graph"))
         out.extend(renderer.icicle(tree))
-    if show_advice:
+    apply_wanted = args.apply or args.apply_dry_run
+    if show_advice or apply_wanted:
         source = advice_source(args)
         out.append(renderer.heading("What you can defer"))
         if source:
@@ -614,6 +626,35 @@ def main(argv: list[str] | None = None) -> int:
                 "  --advice reads the target's source. Pass a .py script, "
                 "-m MODULE, or an installed command."
             )
+        if apply_wanted:
+            if not source or not os.path.isfile(source):
+                print("slowimports: --apply needs a .py file (not -c).", file=sys.stderr)
+                print("\n".join(out))
+                return 1
+            from .apply import apply_path, apply_source
+
+            with open(source, encoding="utf-8", errors="replace") as handle:
+                original = handle.read()
+            rewritten = apply_source(original)
+            if rewritten == original:
+                out.append("")
+                out.append("  --apply: nothing to rewrite (shared import lines are left alone).")
+            elif args.apply_dry_run:
+                import difflib
+
+                diff = difflib.unified_diff(
+                    original.splitlines(keepends=True),
+                    rewritten.splitlines(keepends=True),
+                    fromfile=source,
+                    tofile=source + " (apply)",
+                )
+                out.append("")
+                out.append(renderer.heading("Apply dry-run"))
+                out.extend(line.rstrip("\n") for line in diff)
+            else:
+                apply_path(source, dry_run=False)
+                out.append("")
+                out.append(f"  --apply wrote {source}")
 
     if args.save:
         out.append("")

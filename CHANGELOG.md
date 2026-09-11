@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `--apply` rewrites a `.py` file: single-name imports that `--advice`
+  would list are moved into the functions that use them. `--apply-dry-run`
+  prints a unified diff. Combined `import a, b` lines are left alone.
 - `--repeat N` measures N times and ranks the **median** total. Import-time
   is wall-clock; a single run will flake a tight `--budget-ms`. `--json`
   includes `repeat`, `min_us`, and `max_us`.
