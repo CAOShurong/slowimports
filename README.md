@@ -16,6 +16,10 @@ branch, pulling half a dependency tree in before `--help` can print.
 hundred lines of nested output. slowimports reads that, and then reads *your
 source*, and tells you which imports you can actually move:
 
+```console
+$ uvx slowimports -m pytest --advice
+```
+
 ![advice](https://raw.githubusercontent.com/CAOShurong/slowimports/main/docs/advice.png)
 
 That last part is the point. Knowing `unittest.mock` costs 64 ms is trivia;
