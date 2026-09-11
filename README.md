@@ -136,11 +136,21 @@ $ slowimports app.py --compare before.json
 which reports the difference, plus which packages stopped being imported and
 which started.
 
+## CI budget
+
+```console
+$ slowimports app.py --budget-ms 200
+```
+
+Exit code 1 if total import time exceeds 200 ms. A PR that imports pandas at
+module level cannot hide behind `--durations`. `--json` includes `budget_ok`.
+
 ## Everything else
 
 | | |
 |---|---|
 | `--json` | the profile as data |
+| `--budget-ms MS` | fail if total import time exceeds the budget |
 | `-n N` | how many rows |
 | `--min-saving MS` | ignore advice worth less than this (default 1 ms) |
 | `--ascii` | no block-drawing characters |

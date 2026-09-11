@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `--budget-ms` fails with exit code 1 when total import time exceeds a CI
+  budget. `--json` includes `budget_ms` and `budget_ok` when the flag is set.
+
+### Fixed
+
+- README is generated from `docs/readme_template.md` again. The uvx one-liner
+  and PyPI downloads badge now live in the template, so `docs/build_docs.py
+  --check` stays green.
+
 ## [0.2.1] — 2026-08-12
 
 ### Fixed

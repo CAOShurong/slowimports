@@ -389,6 +389,24 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("What you can defer", out)
 
+    def test_budget_fails_when_limit_is_tiny(self):
+        code, out, err = run([*self.BASE, "-c", "import json", "--budget-ms", "0.001"])
+        self.assertEqual(code, 1)
+        self.assertIn("budget exceeded", out + err)
+
+    def test_budget_passes_when_limit_is_huge(self):
+        code, out, err = run([*self.BASE, "-c", "import json", "--budget-ms", "1000000"])
+        self.assertEqual(code, 0)
+        self.assertNotIn("budget exceeded", out + err)
+
+    def test_json_budget_sets_budget_ok_false(self):
+        code, out, err = run(["--json", "-c", "import json", "--budget-ms", "0.001"])
+        self.assertEqual(code, 1)
+        data = json.loads(out)
+        self.assertFalse(data["budget_ok"])
+        self.assertEqual(data["budget_ms"], 0.001)
+        self.assertIn("budget exceeded", err)
+
 
 if __name__ == "__main__":
     unittest.main()

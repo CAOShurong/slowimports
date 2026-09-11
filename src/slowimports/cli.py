@@ -26,6 +26,7 @@ examples:
   slowimports myscript.py --advice  what to make lazy, and what it saves
   slowimports app.py --save before.json
   slowimports app.py --compare before.json
+  slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
 
 why this exists:
   Python CLIs are often slow to start, and the reason is almost always an
@@ -76,6 +77,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=1.0,
         metavar="MS",
         help="ignore advice worth less than this (default: 1 ms)",
+    )
+    view.add_argument(
+        "--budget-ms",
+        type=float,
+        default=None,
+        metavar="MS",
+        help="fail if total import time exceeds this many milliseconds",
     )
 
     out = parser.add_argument_group("output")
@@ -336,10 +344,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"slowimports: {exc}", file=sys.stderr)
         return 1
 
+    over_budget = args.budget_ms is not None and tree.total_ms > args.budget_ms
+    budget_line = (
+        f"slowimports: budget exceeded: {format_ms(tree.total_us)} > {args.budget_ms:g} ms"
+        if over_budget
+        else ""
+    )
+
     if args.json:
-        json.dump(tree.as_dict(), sys.stdout, indent=2)
+        payload = tree.as_dict()
+        if args.budget_ms is not None:
+            payload["budget_ms"] = args.budget_ms
+            payload["budget_ok"] = not over_budget
+        json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
-        return 0 if returncode == 0 else 1
+        if budget_line:
+            print(budget_line, file=sys.stderr)
+        return 0 if returncode == 0 and not over_budget else 1
 
     if args.save:
         try:
@@ -399,11 +420,14 @@ def main(argv: list[str] | None = None) -> int:
                 palette.status("warning"),
             )
         )
+    if over_budget:
+        out.append("")
+        out.append(renderer._style(f"  {budget_line}", palette.status("critical")))
 
     print("\n".join(out))
     # The measurement succeeded either way, but the command did not, and a
     # script or CI step checking our exit code deserves to hear that.
-    return 0 if returncode == 0 else 1
+    return 0 if returncode == 0 and not over_budget else 1
 
 
 if __name__ == "__main__":
