@@ -456,6 +456,20 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(parse_forbid_names(" pandas, torch,pandas "), ["pandas", "torch"])
         self.assertEqual(parse_forbid_names(None), [])
 
+    def test_repeat_json_includes_min_max(self):
+        code, out, _ = run(["--json", "--repeat", "2", "-c", "import json"])
+        self.assertEqual(code, 0)
+        data = json.loads(out)
+        self.assertEqual(data["repeat"], 2)
+        self.assertLessEqual(data["min_us"], data["total_us"])
+        self.assertLessEqual(data["total_us"], data["max_us"])
+        self.assertGreater(data["total_us"], 0)
+
+    def test_repeat_mentions_median_in_summary(self):
+        code, out, _ = run([*self.BASE, "--repeat", "2", "-c", "import json"])
+        self.assertEqual(code, 0)
+        self.assertIn("median of 2", ANSI.sub("", out))
+
     def test_json_budget_sets_budget_ok_false(self):
         code, out, err = run(["--json", "-c", "import json", "--budget-ms", "0.001"])
         self.assertEqual(code, 1)

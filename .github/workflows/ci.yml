@@ -51,6 +51,7 @@ jobs:
           python -m pip install -e .
           slowimports --version
           slowimports -c 'import json' --color none
+          slowimports -c 'import json' --repeat 2 --json --color none
           # This is a real installed console_scripts command. On Windows pip
           # is an opaque .exe launcher, which guards the metadata resolver.
           slowimports pip --color none | tee pip-profile.txt

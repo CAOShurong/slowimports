@@ -10,7 +10,7 @@ import sys
 
 from . import __version__
 from .analyze import analyze_file, rank_deferrable
-from .model import ImportTree
+from .model import ImportTree, select_median_tree
 from .palette import Palette
 from .parse import ParseError, parse_importtime, strip_importtime
 from .render import Renderer, format_ms
@@ -27,6 +27,7 @@ examples:
   slowimports app.py --save before.json
   slowimports app.py --compare before.json --slower-ms 20
   slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
+  slowimports app.py --repeat 5 --budget-ms 200
   slowimports app.py --forbid pandas,torch
   slowimports -m myapp --advice          same analysis for a module, not just a file
 
@@ -93,6 +94,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="fail if these packages are imported at startup (comma-separated)",
     )
+    view.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        metavar="N",
+        help="run N times and rank the median (default: 1)",
+    )
 
     out = parser.add_argument_group("output")
     out.add_argument("--json", action="store_true", help="machine-readable profile")
@@ -157,23 +165,8 @@ def _target_from_args(args) -> tuple[str, list[str]]:
     return "auto", passthrough
 
 
-def profile(args) -> tuple[ImportTree, str, str, int]:
-    """Run the target and parse its profile.
-
-    Returns ``(tree, label, the target's own stderr, its exit code)``. The
-    exit code is passed back rather than swallowed: a target that failed
-    still produced a usable profile of everything it managed to import
-    before dying, which is worth showing, but reporting success for a
-    command that failed would be a lie.
-    """
-    if args.from_file:
-        try:
-            with open(args.from_file, encoding="utf-8") as handle:
-                tree = ImportTree.from_dict(json.load(handle))
-        except (OSError, ValueError) as exc:
-            raise RunnerError(f"could not read {args.from_file}: {exc}") from None
-        return tree, args.target or args.from_file, "", 0
-
+def _measure_once(args) -> tuple[ImportTree, str, str, int]:
+    """One measured run. ``--from`` is handled in :func:`profile`."""
     kind, passthrough = _target_from_args(args)
     if kind == "code":
         target = resolve(args.code, passthrough, kind="code")
@@ -202,6 +195,50 @@ def profile(args) -> tuple[ImportTree, str, str, int]:
         strip_importtime(result.stderr),
         result.returncode,
     )
+
+
+def profile(args) -> tuple[ImportTree, str, str, int]:
+    """Run the target and parse its profile.
+
+    Returns ``(tree, label, the target's own stderr, its exit code)``. The
+    exit code is passed back rather than swallowed: a target that failed
+    still produced a usable profile of everything it managed to import
+    before dying, which is worth showing, but reporting success for a
+    command that failed would be a lie.
+
+    ``--repeat N`` measures N times and keeps the run whose total is closest
+    to the median. Import-time is wall-clock; a single sample will flake a
+    tight CI budget.
+    """
+    if args.from_file:
+        try:
+            with open(args.from_file, encoding="utf-8") as handle:
+                tree = ImportTree.from_dict(json.load(handle))
+        except (OSError, ValueError) as exc:
+            raise RunnerError(f"could not read {args.from_file}: {exc}") from None
+        return tree, args.target or args.from_file, "", 0
+
+    n = max(1, int(getattr(args, "repeat", 1) or 1))
+    if n == 1:
+        return _measure_once(args)
+
+    trees: list[ImportTree] = []
+    extras: list[str] = []
+    codes: list[int] = []
+    label = ""
+    for _ in range(n):
+        tree, label, extra, code = _measure_once(args)
+        trees.append(tree)
+        extras.append(extra)
+        codes.append(code)
+    chosen = select_median_tree(trees)
+    idx = trees.index(chosen)
+    totals = [item.total_us for item in trees]
+    chosen.repeat = n
+    chosen.min_us = min(totals)
+    chosen.max_us = max(totals)
+    # Keep the pairing of stderr/exit code with the tree we actually report.
+    return chosen, label, extras[idx], codes[idx]
 
 
 def render_advice(
@@ -510,6 +547,10 @@ def main(argv: list[str] | None = None) -> int:
                 for name, us in hits
             ]
             payload["forbid_ok"] = not hits
+        if tree.repeat > 1:
+            payload["repeat"] = tree.repeat
+            payload["min_us"] = tree.min_us
+            payload["max_us"] = tree.max_us
         json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
         if compare_error:

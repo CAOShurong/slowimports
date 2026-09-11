@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `--repeat N` measures N times and ranks the **median** total. Import-time
+  is wall-clock; a single run will flake a tight `--budget-ms`. `--json`
+  includes `repeat`, `min_us`, and `max_us`.
 - `--forbid pandas,torch` fails with exit code 1 if those packages (or
   modules) appear in the startup import graph. `--json` includes `forbid_ok`.
   A time budget still passes on a fast runner when someone imports pandas;

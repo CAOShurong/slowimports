@@ -17,7 +17,7 @@ from __future__ import annotations
 import pathlib
 import unittest
 
-from slowimports.model import ImportNode, ImportTree
+from slowimports.model import ImportNode, ImportTree, median_us, select_median_tree
 from slowimports.parse import ParseError, parse_importtime, strip_importtime
 
 FIXTURE = pathlib.Path(__file__).parent / "fixture_importtime.txt"
@@ -207,6 +207,20 @@ class TestSerialisation(unittest.TestCase):
         restored = ImportTree.from_dict(tree.as_dict())
         for name in ("json", "json.encoder", "re"):
             self.assertEqual(restored.savings(name), tree.savings(name))
+
+
+class TestMedian(unittest.TestCase):
+    def test_median_us_odd_and_even(self):
+        self.assertEqual(median_us([3, 1, 2]), 2)
+        self.assertEqual(median_us([4, 1, 2, 3]), 2)
+        self.assertEqual(median_us([]), 0)
+
+    def test_select_median_tree_picks_closest_total(self):
+        light = ImportTree([], total_us=100)
+        mid = ImportTree([], total_us=200)
+        heavy = ImportTree([], total_us=900)
+        chosen = select_median_tree([light, mid, heavy])
+        self.assertIs(chosen, mid)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-__all__ = ["ImportNode", "ImportTree"]
+__all__ = ["ImportNode", "ImportTree", "median_us", "select_median_tree"]
 
 
 @dataclass
@@ -71,6 +71,9 @@ class ImportTree:
         self.roots = roots
         self._total_us = total_us
         self._by_name: dict[str, ImportNode] | None = None
+        self.repeat = 1
+        self.min_us: int | None = None
+        self.max_us: int | None = None
 
     # -- basics ------------------------------------------------------------
 
@@ -209,11 +212,16 @@ class ImportTree:
                 "children": [encode(child) for child in node.children],
             }
 
-        return {
+        payload = {
             "total_us": self.total_us,
             "modules": len(self),
             "roots": [encode(root) for root in self.roots],
         }
+        if self.repeat > 1:
+            payload["repeat"] = self.repeat
+            payload["min_us"] = self.min_us
+            payload["max_us"] = self.max_us
+        return payload
 
     @classmethod
     def from_dict(cls, data: dict) -> ImportTree:
@@ -230,4 +238,30 @@ class ImportTree:
 
         roots = [decode(raw, 0, None) for raw in data.get("roots", ())]
         total = data.get("total_us")
-        return cls(roots, total_us=int(total) if total is not None else None)
+        tree = cls(roots, total_us=int(total) if total is not None else None)
+        tree.repeat = max(1, int(data.get("repeat") or 1))
+        if "min_us" in data:
+            tree.min_us = int(data["min_us"])
+        if "max_us" in data:
+            tree.max_us = int(data["max_us"])
+        return tree
+
+
+def median_us(values: list[int]) -> int:
+    """Integer median. Even length uses the lower-middle pair averaged."""
+    if not values:
+        return 0
+    ordered = sorted(values)
+    mid = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[mid]
+    return (ordered[mid - 1] + ordered[mid]) // 2
+
+
+def select_median_tree(trees: list[ImportTree]) -> ImportTree:
+    """The profile whose total is closest to the median total."""
+    if not trees:
+        raise ValueError("no trees")
+    totals = [tree.total_us for tree in trees]
+    med = median_us(totals)
+    return min(trees, key=lambda tree: (abs(tree.total_us - med), tree.total_us))

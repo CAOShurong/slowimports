@@ -234,10 +234,16 @@ class Renderer:
             "warning": "noticeable",
             "critical": "slow",
         }[level]
-        return [
+        rows = [
             self._style(target, pal.bold()),
             "  "
             + self._style(format_ms(total), pal.status(level))
             + f" of import time across {len(tree)} modules"
             + self._style(f"  ({verdict})", pal.muted()),
         ]
+        if tree.repeat > 1:
+            extra = f"  median of {tree.repeat}"
+            if tree.min_us is not None and tree.max_us is not None:
+                extra += f"  (min {format_ms(tree.min_us)}, max {format_ms(tree.max_us)})"
+            rows.append(self._style(extra, pal.muted()))
+        return rows

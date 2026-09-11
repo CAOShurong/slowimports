@@ -136,10 +136,13 @@ fails the job if total import time grew by more than 20 ms.
 
 ```console
 $ slowimports app.py --budget-ms 200
+$ slowimports app.py --repeat 5 --budget-ms 200
 ```
 
 Exit code 1 if total import time exceeds 200 ms. A PR that imports pandas at
 module level cannot hide behind `--durations`. `--json` includes `budget_ok`.
+`--repeat 5` ranks the median of five runs; import-time is wall-clock and a
+single sample will flake a tight budget.
 
 ```console
 $ slowimports app.py --forbid pandas,torch
@@ -153,6 +156,7 @@ fails if those names appear at all, even when the total is still under budget.
 |---|---|
 | `--json` | the profile as data |
 | `--budget-ms MS` | fail if total import time exceeds the budget |
+| `--repeat N` | run N times and rank the median (for CI budgets) |
 | `--forbid PKGS` | fail if these packages are imported at startup |
 | `--slower-ms MS` | with `--compare`, fail if total import time grew by more than this |
 | `-n N` | how many rows |
