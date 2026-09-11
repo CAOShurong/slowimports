@@ -27,6 +27,7 @@ examples:
   slowimports app.py --save before.json
   slowimports app.py --compare before.json --slower-ms 20
   slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
+  slowimports app.py --forbid pandas,torch
   slowimports -m myapp --advice          same analysis for a module, not just a file
 
 why this exists:
@@ -85,6 +86,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="MS",
         help="fail if total import time exceeds this many milliseconds",
+    )
+    view.add_argument(
+        "--forbid",
+        metavar="PACKAGES",
+        default=None,
+        help="fail if these packages are imported at startup (comma-separated)",
     )
 
     out = parser.add_argument_group("output")
@@ -361,6 +368,48 @@ def render_comparison(tree: ImportTree, path: str, renderer: Renderer) -> tuple[
     return rows, delta
 
 
+def parse_forbid_names(raw: str | None) -> list[str]:
+    """Split ``pandas,torch`` into distinct names."""
+    if not raw:
+        return []
+    seen: list[str] = []
+    for part in raw.split(","):
+        name = part.strip()
+        if name and name not in seen:
+            seen.append(name)
+    return seen
+
+
+def forbidden_hits(tree: ImportTree, names: list[str]) -> list[tuple[str, int]]:
+    """Packages/modules from ``--forbid`` that actually loaded, with self-time."""
+    hits: list[tuple[str, int]] = []
+    for name in names:
+        us = 0
+        found = False
+        for node in tree:
+            if "." in name:
+                hit = node.name == name or node.name.startswith(name + ".")
+            else:
+                hit = node.top_level == name
+            if hit:
+                us += node.self_us
+                found = True
+        if found:
+            hits.append((name, us))
+    hits.sort(key=lambda item: item[1], reverse=True)
+    return hits
+
+
+def render_forbid(hits: list[tuple[str, int]]) -> str:
+    if not hits:
+        return ""
+    width = max(len(name) for name, _ in hits)
+    lines = ["slowimports: forbidden imports at startup:"]
+    for name, us in hits:
+        lines.append(f"  {name:<{width}s}  {format_ms(us)}")
+    return "\n".join(lines)
+
+
 def advice_source(args) -> str | None:
     """The file ``--advice`` should read: a script, ``-m`` module, or command."""
     if args.code:
@@ -442,6 +491,10 @@ def main(argv: list[str] | None = None) -> int:
         f"slowimports: slower than saved by more than {args.slower_ms:g} ms" if grew else ""
     )
 
+    forbid_names = parse_forbid_names(args.forbid)
+    hits = forbidden_hits(tree, forbid_names)
+    forbid_line = render_forbid(hits)
+
     if args.json:
         payload = tree.as_dict()
         if args.budget_ms is not None:
@@ -450,6 +503,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.slower_ms is not None:
             payload["slower_ms"] = args.slower_ms
             payload["slower_ok"] = not grew
+        if forbid_names:
+            payload["forbid"] = forbid_names
+            payload["forbidden"] = [
+                {"name": name, "self_us": us, "self_ms": round(us / 1000.0, 3)}
+                for name, us in hits
+            ]
+            payload["forbid_ok"] = not hits
         json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
         if compare_error:
@@ -458,7 +518,9 @@ def main(argv: list[str] | None = None) -> int:
             print(budget_line, file=sys.stderr)
         if slower_line:
             print(slower_line, file=sys.stderr)
-        return 0 if returncode == 0 and not over_budget and not grew else 1
+        if forbid_line:
+            print(forbid_line, file=sys.stderr)
+        return 0 if returncode == 0 and not over_budget and not grew and not hits else 1
 
     if args.save:
         try:
@@ -534,11 +596,14 @@ def main(argv: list[str] | None = None) -> int:
     if slower_line:
         out.append("")
         out.append(renderer._style(f"  {slower_line}", palette.status("critical")))
+    if forbid_line:
+        out.append("")
+        out.append(renderer._style(f"  {forbid_line}", palette.status("critical")))
 
     print("\n".join(out))
     # The measurement succeeded either way, but the command did not, and a
     # script or CI step checking our exit code deserves to hear that.
-    return 0 if returncode == 0 and not over_budget and not grew else 1
+    return 0 if returncode == 0 and not over_budget and not grew and not hits else 1
 
 
 if __name__ == "__main__":

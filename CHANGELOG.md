@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `--forbid pandas,torch` fails with exit code 1 if those packages (or
+  modules) appear in the startup import graph. `--json` includes `forbid_ok`.
+  A time budget still passes on a fast runner when someone imports pandas;
+  a forbid list does not.
 - `--advice` now reads the source of `-m MODULE` and installed console scripts,
   not only a path that already ends in `.py`. `slowimports -m myapp --advice`
   is the command the first screen already showed.

@@ -22,7 +22,7 @@ from types import SimpleNamespace
 from typing import ClassVar
 from unittest.mock import patch
 
-from slowimports.cli import main, package_deltas, split_passthrough
+from slowimports.cli import main, package_deltas, parse_forbid_names, split_passthrough
 from slowimports.palette import Palette
 from slowimports.parse import parse_importtime, strip_importtime
 from slowimports.render import Renderer, format_ms, truncate
@@ -431,6 +431,30 @@ class TestEndToEnd(unittest.TestCase):
         code, out, err = run([*self.BASE, "-c", "import json", "--budget-ms", "1000000"])
         self.assertEqual(code, 0)
         self.assertNotIn("budget exceeded", out + err)
+
+    def test_forbid_unknown_package_passes(self):
+        code, out, err = run(
+            [*self.BASE, "-c", "import json", "--forbid", "definitely_not_imported_xyz"]
+        )
+        self.assertEqual(code, 0)
+        self.assertNotIn("forbidden imports", out + err)
+
+    def test_forbid_json_fails_because_the_snippet_imports_it(self):
+        code, out, err = run([*self.BASE, "-c", "import json", "--forbid", "json"])
+        self.assertEqual(code, 1)
+        self.assertIn("forbidden imports", out + err)
+
+    def test_json_forbid_ok_false(self):
+        code, out, err = run(["--json", "-c", "import json", "--forbid", "json"])
+        self.assertEqual(code, 1)
+        data = json.loads(out)
+        self.assertFalse(data["forbid_ok"])
+        self.assertEqual(data["forbid"], ["json"])
+        self.assertIn("forbidden imports", err)
+
+    def test_parse_forbid_names_splits(self):
+        self.assertEqual(parse_forbid_names(" pandas, torch,pandas "), ["pandas", "torch"])
+        self.assertEqual(parse_forbid_names(None), [])
 
     def test_json_budget_sets_budget_ok_false(self):
         code, out, err = run(["--json", "-c", "import json", "--budget-ms", "0.001"])
