@@ -40,6 +40,8 @@ that is the whole shopping list. Python 3.9+, Linux, macOS and Windows.
 
 ```console
 $ slowimports myscript.py            # a script
+$ slowimports myscript.py --apply    # rewrite: move deferrable imports inside functions
+$ slowimports myscript.py --apply-dry-run
 $ slowimports -m pytest              # a module
 $ slowimports mytool                 # an installed command
 $ slowimports -c 'import pandas'     # a single import
@@ -100,7 +102,9 @@ Star imports are never reported: what `from x import *` binds is not knowable
 without importing it, so nothing can be proven about the uses.
 
 The analysis is deliberately one-sided. It will miss safe moves rather than
-suggest an unsafe one.
+suggest an unsafe one. `--apply` performs those moves on a `.py` file you
+pass as the target (never site-packages). Combined `import a, b` lines are
+split when only some names can move. `--apply-dry-run` prints the patch.
 
 ## The saving is not the cumulative time
 
@@ -161,6 +165,8 @@ fails if those names appear at all, even when the total is still under budget.
 | `--slower-ms MS` | with `--compare`, fail if total import time grew by more than this |
 | `-n N` | how many rows |
 | `--min-saving MS` | ignore advice worth less than this (default 1 ms) |
+| `--apply` | rewrite a `.py` script: move those imports inside functions |
+| `--apply-dry-run` | print that patch without writing |
 | `--ascii` | no block-drawing characters |
 | `--light` | colours stepped for a light terminal |
 | `--python PATH` | measure a different interpreter |

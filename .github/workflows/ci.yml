@@ -60,6 +60,8 @@ jobs:
           # The example exists to have something to advise about; if the
           # analyser stops finding it, the tool has regressed.
           grep -q "unittest.mock" /tmp/advice.txt
+          slowimports examples/slow_cli.py --apply-dry-run --min-saving 0 --color none | tee /tmp/apply.txt
+          grep -q "unittest.mock" /tmp/apply.txt
 
   docs:
     name: README is current

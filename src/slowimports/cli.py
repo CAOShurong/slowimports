@@ -14,6 +14,7 @@ from .model import ImportTree, select_median_tree
 from .palette import Palette
 from .parse import ParseError, parse_importtime, strip_importtime
 from .render import Renderer, format_ms
+from .rewrite import RewriteError, rewrite, unified_diff, writable_script
 from .runner import RunnerError, resolve, run_profile, source_path_for
 
 EPILOG = """\
@@ -24,7 +25,8 @@ examples:
   slowimports -c 'import pandas'    profile one import
 
   slowimports myscript.py --advice  what to make lazy, and what it saves
-  slowimports myscript.py --apply   rewrite the file (single-name imports only)
+  slowimports myscript.py --apply   rewrite the file: move deferrable imports
+  slowimports myscript.py --apply-dry-run   print that patch without writing
   slowimports app.py --save before.json
   slowimports app.py --compare before.json --slower-ms 20
   slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
@@ -76,7 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     view.add_argument(
         "--apply",
         action="store_true",
-        help="rewrite the target .py: move deferrable single-name imports into functions",
+        help="rewrite the target .py: move deferrable imports into the functions that use them",
     )
     view.add_argument(
         "--apply-dry-run",
@@ -631,30 +633,41 @@ def main(argv: list[str] | None = None) -> int:
                 print("slowimports: --apply needs a .py file (not -c).", file=sys.stderr)
                 print("\n".join(out))
                 return 1
-            from .apply import apply_path, apply_source
-
-            with open(source, encoding="utf-8", errors="replace") as handle:
-                original = handle.read()
-            rewritten = apply_source(original)
-            if rewritten == original:
-                out.append("")
-                out.append("  --apply: nothing to rewrite (shared import lines are left alone).")
-            elif args.apply_dry_run:
-                import difflib
-
-                diff = difflib.unified_diff(
-                    original.splitlines(keepends=True),
-                    rewritten.splitlines(keepends=True),
-                    fromfile=source,
-                    tofile=source + " (apply)",
+            write_path = None
+            if args.apply and not args.apply_dry_run:
+                try:
+                    write_path = writable_script(
+                        args.target if args.target and os.path.isfile(args.target) else None
+                    )
+                except RewriteError as exc:
+                    print(f"slowimports: {exc}", file=sys.stderr)
+                    print("\n".join(out))
+                    return 1
+            try:
+                with open(source, encoding="utf-8", errors="replace") as handle:
+                    original = handle.read()
+                bindings = analyze_file(source)
+                chosen = rank_deferrable(
+                    bindings, tree.savings, minimum_us=int(args.min_saving * 1000)
                 )
+                result = rewrite(original, [item.binding for item in chosen], filename=source)
+            except (OSError, SyntaxError, RewriteError) as exc:
+                print(f"slowimports: {exc}", file=sys.stderr)
+                print("\n".join(out))
+                return 1
+            if not result.changed:
+                out.append("")
+                out.append("  --apply: nothing to rewrite.")
+            elif write_path is None:
+                patch = unified_diff(original, result.source, source)
                 out.append("")
                 out.append(renderer.heading("Apply dry-run"))
-                out.extend(line.rstrip("\n") for line in diff)
+                out.extend(patch.splitlines())
             else:
-                apply_path(source, dry_run=False)
+                with open(write_path, "w", encoding="utf-8", newline="") as handle:
+                    handle.write(result.source)
                 out.append("")
-                out.append(f"  --apply wrote {source}")
+                out.append(f"  --apply wrote {write_path} ({len(result.moved)} import(s))")
 
     if args.save:
         out.append("")

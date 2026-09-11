@@ -530,6 +530,37 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(slower, [])
         self.assertEqual(faster, [])
 
+    def test_apply_dry_run_prints_a_patch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "app.py")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("import json\n\ndef dump():\n    return json.dumps({})\n")
+            code, out, err = run([*self.BASE, "--apply-dry-run", "--min-saving", "0", path])
+            self.assertEqual(code, 0, err)
+            self.assertIn("+++ b/", ANSI.sub("", out))
+            self.assertIn("import json", out)
+            with open(path, encoding="utf-8") as handle:
+                self.assertIn("import json\n\ndef dump", handle.read())
+
+    def test_apply_writes_a_user_script(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "app.py")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("import json\n\ndef dump():\n    return json.dumps({})\n")
+            code, out, err = run([*self.BASE, "--apply", "--min-saving", "0", path])
+            self.assertEqual(code, 0, err)
+            self.assertIn("--apply wrote", ANSI.sub("", out))
+            with open(path, encoding="utf-8") as handle:
+                text = handle.read()
+        compile(text, path, "exec")
+        self.assertIn("    import json\n", text)
+        self.assertNotIn("import json\n\ndef dump", text)
+
+    def test_apply_refuses_a_module_path(self):
+        code, _out, err = run([*self.BASE, "-m", "json", "--apply", "--min-saving", "0"])
+        self.assertEqual(code, 1)
+        self.assertIn("rewrites a .py", err)
+
 
 if __name__ == "__main__":
     unittest.main()
