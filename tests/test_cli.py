@@ -22,7 +22,7 @@ from types import SimpleNamespace
 from typing import ClassVar
 from unittest.mock import patch
 
-from slowimports.cli import main, split_passthrough
+from slowimports.cli import main, package_deltas, split_passthrough
 from slowimports.palette import Palette
 from slowimports.parse import parse_importtime, strip_importtime
 from slowimports.render import Renderer, format_ms, truncate
@@ -32,6 +32,7 @@ from slowimports.runner import (
     _console_script_from_metadata,
     resolve,
     run_profile,
+    source_path_for,
 )
 
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
@@ -93,6 +94,22 @@ class TestTargetResolution(unittest.TestCase):
     def test_describe_is_readable(self):
         self.assertEqual(Target("module", "pytest", []).describe(), "-m pytest")
         self.assertEqual(Target("script", "a.py", ["-v"]).describe(), "a.py -v")
+
+
+class TestSourcePath(unittest.TestCase):
+    def test_script_is_its_own_source(self):
+        path = source_path_for(Target("script", EXAMPLE, []))
+        self.assertEqual(os.path.normcase(path), os.path.normcase(os.path.abspath(EXAMPLE)))
+
+    def test_snippet_has_no_source(self):
+        self.assertIsNone(source_path_for(Target("code", "import json", [])))
+
+    def test_stdlib_package_resolves_to_a_py_file(self):
+        path = source_path_for(Target("module", "json", []))
+        self.assertIsNotNone(path)
+        self.assertTrue(path.endswith(".py"))
+        self.assertTrue(os.path.isfile(path))
+        self.assertIn("json", os.path.basename(os.path.dirname(path)) + os.path.basename(path))
 
 
 class TestRunner(unittest.TestCase):
@@ -309,6 +326,22 @@ class TestEndToEnd(unittest.TestCase):
         # json is used at module level in the example, so it must not appear
         # as advice; unittest.mock is used only inside a function.
         self.assertIn("unittest.mock", out)
+        self.assertNotIn("reading ", out)
+
+    def test_advice_on_a_module_reads_its_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "advpkg.py")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("import json\n\ndef dump():\n    return json.dumps({})\n")
+            extra = tmp + os.pathsep + os.environ.get("PYTHONPATH", "")
+            with patch.dict(os.environ, {"PYTHONPATH": extra}):
+                code, out, _ = run(
+                    [*self.BASE, "-m", "advpkg", "--advice", "--min-saving", "0"]
+                )
+        self.assertEqual(code, 0, out)
+        self.assertIn("What you can defer", out)
+        self.assertIn("import json", out)
+        self.assertIn("reading", out)
 
     def test_json_output_round_trips(self):
         code, out, _ = run(["--json", "-c", "import json"])
@@ -406,6 +439,58 @@ class TestEndToEnd(unittest.TestCase):
         self.assertFalse(data["budget_ok"])
         self.assertEqual(data["budget_ms"], 0.001)
         self.assertIn("budget exceeded", err)
+
+    def test_slower_ms_fails_when_now_is_heavier_than_saved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tiny = os.path.join(tmp, "tiny.json")
+            with open(tiny, "w", encoding="utf-8") as handle:
+                json.dump({"total_us": 1, "modules": 0, "roots": []}, handle)
+            code, out, err = run(
+                [
+                    *self.BASE,
+                    "-c",
+                    "import json",
+                    "--compare",
+                    tiny,
+                    "--slower-ms",
+                    "0.001",
+                ]
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("slower than saved", out + err)
+
+    def test_slower_ms_passes_when_growth_is_under_the_limit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "before.json")
+            run([*self.BASE, "-c", "import json", "--save", path])
+            code, out, err = run(
+                [
+                    *self.BASE,
+                    "-c",
+                    "import json",
+                    "--compare",
+                    path,
+                    "--slower-ms",
+                    "1000000",
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertNotIn("slower than saved", out + err)
+
+    def test_package_deltas_reports_slower_and_faster(self):
+        added, gone, slower, faster = package_deltas(
+            {"pandas": 8000, "json": 100, "pygments": 1500},
+            {"pandas": 4000, "json": 100, "pygments": 4000, "os": 2000},
+        )
+        self.assertEqual(added, [])
+        self.assertEqual(gone, ["os"])
+        self.assertEqual(slower[0][0], "pandas")
+        self.assertEqual(faster[0][0], "pygments")
+
+    def test_package_deltas_ignores_sub_ms_jitter(self):
+        _, _, slower, faster = package_deltas({"pandas": 4050}, {"pandas": 4000})
+        self.assertEqual(slower, [])
+        self.assertEqual(faster, [])
 
 
 if __name__ == "__main__":

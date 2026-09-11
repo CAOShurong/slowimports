@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `--advice` now reads the source of `-m MODULE` and installed console scripts,
+  not only a path that already ends in `.py`. `slowimports -m myapp --advice`
+  is the command the first screen already showed.
+- `--compare` lists packages that got slower or faster (ignoring sub-ms
+  jitter), not only packages that appeared or disappeared.
+- `--slower-ms` fails with exit code 1 when total import time grew by more
+  than that many milliseconds versus a `--compare` profile. `--json` includes
+  `slower_ok`.
 - `--budget-ms` fails with exit code 1 when total import time exceeds a CI
   budget. `--json` includes `budget_ms` and `budget_ok` when the flag is set.
 

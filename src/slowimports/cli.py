@@ -14,7 +14,7 @@ from .model import ImportTree
 from .palette import Palette
 from .parse import ParseError, parse_importtime, strip_importtime
 from .render import Renderer, format_ms
-from .runner import RunnerError, resolve, run_profile
+from .runner import RunnerError, resolve, run_profile, source_path_for
 
 EPILOG = """\
 examples:
@@ -25,8 +25,9 @@ examples:
 
   slowimports myscript.py --advice  what to make lazy, and what it saves
   slowimports app.py --save before.json
-  slowimports app.py --compare before.json
+  slowimports app.py --compare before.json --slower-ms 20
   slowimports app.py --budget-ms 200     fail CI if startup imports exceed 200 ms
+  slowimports -m myapp --advice          same analysis for a module, not just a file
 
 why this exists:
   Python CLIs are often slow to start, and the reason is almost always an
@@ -90,6 +91,13 @@ def build_parser() -> argparse.ArgumentParser:
     out.add_argument("--json", action="store_true", help="machine-readable profile")
     out.add_argument("--save", metavar="FILE", help="write the profile for later comparison")
     out.add_argument("--compare", metavar="FILE", help="compare against a saved profile")
+    out.add_argument(
+        "--slower-ms",
+        type=float,
+        default=None,
+        metavar="MS",
+        help="with --compare, fail if total import time grew by more than this",
+    )
     out.add_argument(
         "--from",
         dest="from_file",
@@ -261,18 +269,47 @@ def render_advice(
     return rows
 
 
-def render_comparison(tree: ImportTree, path: str, renderer: Renderer) -> list[str]:
+_DELTA_FLOOR_US = 1000
+
+
+def package_deltas(
+    now: dict[str, int],
+    before: dict[str, int],
+    *,
+    floor_us: int = _DELTA_FLOOR_US,
+) -> tuple[list[str], list[str], list[tuple[str, int]], list[tuple[str, int]]]:
+    """Added, removed, slower, faster top-level packages (sub-ms jitter ignored)."""
+    added = sorted(set(now) - set(before), key=lambda n: now[n], reverse=True)
+    gone = sorted(set(before) - set(now), key=lambda n: before[n], reverse=True)
+    slower: list[tuple[str, int]] = []
+    faster: list[tuple[str, int]] = []
+    for name in set(now) & set(before):
+        delta = now[name] - before[name]
+        if delta >= floor_us:
+            slower.append((name, delta))
+        elif delta <= -floor_us:
+            faster.append((name, delta))
+    slower.sort(key=lambda item: item[1], reverse=True)
+    faster.sort(key=lambda item: item[1])
+    return added, gone, slower, faster
+
+
+def _load_saved_tree(path: str) -> ImportTree:
+    with open(path, encoding="utf-8") as handle:
+        return ImportTree.from_dict(json.load(handle))
+
+
+def render_comparison(tree: ImportTree, path: str, renderer: Renderer) -> tuple[list[str], int]:
     pal = renderer.palette
     try:
-        with open(path, encoding="utf-8") as handle:
-            before = ImportTree.from_dict(json.load(handle))
-    except (OSError, ValueError) as exc:
-        return [f"  could not read {path}: {exc}"]
+        before = _load_saved_tree(path)
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        return [f"  could not read {path}: {exc}"], 0
 
     delta = tree.total_us - before.total_us
-    faster = delta < 0
-    level = "good" if faster else "critical" if delta > 0 else "warning"
-    arrow = "▼" if faster else "▲" if delta > 0 else "="
+    faster_total = delta < 0
+    level = "good" if faster_total else "critical" if delta > 0 else "warning"
+    arrow = "▼" if faster_total else "▲" if delta > 0 else "="
     pct = (delta / before.total_us * 100) if before.total_us else 0.0
 
     rows = [
@@ -281,17 +318,14 @@ def render_comparison(tree: ImportTree, path: str, renderer: Renderer) -> list[s
         "  "
         + renderer._style(
             f"{arrow} {format_ms(abs(delta))}  ({abs(pct):.1f}% "
-            f"{'faster' if faster else 'slower' if delta else 'unchanged'})",
+            f"{'faster' if faster_total else 'slower' if delta else 'unchanged'})",
             pal.status(level),
         ),
     ]
 
     before_costs = before.top_level_costs()
     now_costs = tree.top_level_costs()
-    gone = sorted(
-        set(before_costs) - set(now_costs), key=lambda n: before_costs[n], reverse=True
-    )
-    added = sorted(set(now_costs) - set(before_costs), key=lambda n: now_costs[n], reverse=True)
+    added, gone, slower, faster = package_deltas(now_costs, before_costs)
     if gone:
         rows.append("")
         rows.append("  no longer imported:")
@@ -308,7 +342,46 @@ def render_comparison(tree: ImportTree, path: str, renderer: Renderer) -> list[s
                 f"    {name:<24}"
                 + renderer._style(f"+{format_ms(now_costs[name])}", pal.status("critical"))
             )
-    return rows
+    if slower:
+        rows.append("")
+        rows.append("  slower:")
+        for name, amount in slower[:8]:
+            rows.append(
+                f"    {name:<24}"
+                + renderer._style(f"+{format_ms(amount)}", pal.status("critical"))
+            )
+    if faster:
+        rows.append("")
+        rows.append("  faster:")
+        for name, amount in faster[:8]:
+            rows.append(
+                f"    {name:<24}"
+                + renderer._style(f"-{format_ms(-amount)}", pal.status("good"))
+            )
+    return rows, delta
+
+
+def advice_source(args) -> str | None:
+    """The file ``--advice`` should read: a script, ``-m`` module, or command."""
+    if args.code:
+        return None
+    kind, passthrough = _target_from_args(args)
+    if kind == "code":
+        return None
+    try:
+        if kind == "module":
+            target = resolve(args.module, passthrough, kind="module")
+        elif args.target:
+            target = resolve(args.target, passthrough)
+        else:
+            return None
+        return source_path_for(
+            target,
+            args.python,
+            timeout=min(float(args.timeout or 15.0), 15.0),
+        )
+    except RunnerError:
+        return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -351,16 +424,41 @@ def main(argv: list[str] | None = None) -> int:
         else ""
     )
 
+    compare_delta_us = 0
+    compare_error = ""
+    if args.compare:
+        try:
+            before = _load_saved_tree(args.compare)
+            compare_delta_us = tree.total_us - before.total_us
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            compare_error = f"slowimports: could not read {args.compare}: {exc}"
+    grew = (
+        args.slower_ms is not None
+        and not compare_error
+        and args.compare
+        and compare_delta_us / 1000.0 > args.slower_ms
+    )
+    slower_line = (
+        f"slowimports: slower than saved by more than {args.slower_ms:g} ms" if grew else ""
+    )
+
     if args.json:
         payload = tree.as_dict()
         if args.budget_ms is not None:
             payload["budget_ms"] = args.budget_ms
             payload["budget_ok"] = not over_budget
+        if args.slower_ms is not None:
+            payload["slower_ms"] = args.slower_ms
+            payload["slower_ok"] = not grew
         json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
+        if compare_error:
+            print(compare_error, file=sys.stderr)
         if budget_line:
             print(budget_line, file=sys.stderr)
-        return 0 if returncode == 0 and not over_budget else 1
+        if slower_line:
+            print(slower_line, file=sys.stderr)
+        return 0 if returncode == 0 and not over_budget and not grew else 1
 
     if args.save:
         try:
@@ -385,7 +483,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.compare:
         out.append(renderer.heading("Compared with the saved profile"))
-        out.extend(render_comparison(tree, args.compare, renderer))
+        compare_rows, compare_delta_us = render_comparison(tree, args.compare, renderer)
+        out.extend(compare_rows)
+        grew = args.slower_ms is not None and compare_delta_us / 1000.0 > args.slower_ms
+        if grew:
+            slower_line = f"slowimports: slower than saved by more than {args.slower_ms:g} ms"
 
     if show_packages:
         out.append(renderer.heading("Where the time goes, by package"))
@@ -397,12 +499,18 @@ def main(argv: list[str] | None = None) -> int:
         out.append(renderer.heading("Import graph"))
         out.extend(renderer.icicle(tree))
     if show_advice:
-        source = args.target if args.target and args.target.endswith(".py") else None
+        source = advice_source(args)
         out.append(renderer.heading("What you can defer"))
-        if source and os.path.exists(source):
+        if source:
+            given = args.target and os.path.isfile(args.target)
+            if not given:
+                out.append(renderer._style(f"  reading {source}", renderer.palette.muted()))
             out.extend(render_advice(tree, source, renderer, args.min_saving))
         else:
-            out.append("  --advice needs a source file to read; point it at a .py script.")
+            out.append(
+                "  --advice reads the target's source. Pass a .py script, "
+                "-m MODULE, or an installed command."
+            )
 
     if args.save:
         out.append("")
@@ -423,11 +531,14 @@ def main(argv: list[str] | None = None) -> int:
     if over_budget:
         out.append("")
         out.append(renderer._style(f"  {budget_line}", palette.status("critical")))
+    if slower_line:
+        out.append("")
+        out.append(renderer._style(f"  {slower_line}", palette.status("critical")))
 
     print("\n".join(out))
     # The measurement succeeded either way, but the command did not, and a
     # script or CI step checking our exit code deserves to hear that.
-    return 0 if returncode == 0 and not over_budget else 1
+    return 0 if returncode == 0 and not over_budget and not grew else 1
 
 
 if __name__ == "__main__":

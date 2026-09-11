@@ -85,6 +85,8 @@ Where the time goes, by package
 
 Add `--advice` for the analysis, `--modules` to rank individual modules,
 `--tree` for an icicle chart of the import graph, or `--all` for everything.
+`--advice` reads a `.py` script, a `-m` module, or an installed command's
+entry-point module — not only a path that already ends in `.py`.
 
 ## How the advice works
 
@@ -134,8 +136,14 @@ $ slowimports app.py --save before.json
 $ slowimports app.py --compare before.json
 ```
 
-which reports the difference, plus which packages stopped being imported and
-which started.
+which reports the difference, packages that stopped or started being imported,
+and packages that got slower or faster (sub-millisecond jitter is ignored).
+
+```console
+$ slowimports app.py --compare before.json --slower-ms 20
+```
+
+fails the job if total import time grew by more than 20 ms.
 
 ## CI budget
 
@@ -152,6 +160,7 @@ module level cannot hide behind `--durations`. `--json` includes `budget_ok`.
 |---|---|
 | `--json` | the profile as data |
 | `--budget-ms MS` | fail if total import time exceeds the budget |
+| `--slower-ms MS` | with `--compare`, fail if total import time grew by more than this |
 | `-n N` | how many rows |
 | `--min-saving MS` | ignore advice worth less than this (default 1 ms) |
 | `--ascii` | no block-drawing characters |

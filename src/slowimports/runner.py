@@ -24,7 +24,7 @@ import zipfile
 from contextlib import suppress
 from dataclasses import dataclass
 
-__all__ = ["RunResult", "RunnerError", "Target", "run_profile"]
+__all__ = ["RunResult", "RunnerError", "Target", "run_profile", "source_path_for"]
 
 
 _ENTRY_POINT_MARKER = "slowimports-entry-point:"
@@ -278,6 +278,86 @@ def _module_from_wrapper(text: str) -> str | None:
             if module and not module.startswith("_"):
                 return module
     return None
+
+
+_SOURCE_MARKER = "slowimports-source:"
+_SOURCE_PROBE = r"""
+import importlib.util
+import json
+import os
+import sys
+
+name = sys.argv[1]
+origin = None
+try:
+    spec = importlib.util.find_spec(name)
+except (ImportError, ModuleNotFoundError, ValueError):
+    spec = None
+if spec is not None:
+    origin = spec.origin
+    if not origin or origin in ("built-in", "frozen"):
+        origin = None
+        paths = list(spec.submodule_search_locations or [])
+        if paths:
+            candidate = os.path.join(paths[0], "__init__.py")
+            if os.path.isfile(candidate):
+                origin = candidate
+print("slowimports-source:" + json.dumps(origin))
+"""
+
+
+def _module_source_path(module: str, python: str, *, timeout: float) -> str | None:
+    """Ask ``python`` for the ``.py`` file that implements ``module``.
+
+    Runs in a subprocess so we use that interpreter's sys.path, and so a
+    broken import of a parent package cannot crash this process.
+    """
+    resolution_timeout = min(max(timeout, 1.0), 15.0)
+    try:
+        completed = subprocess.run(
+            [python, "-c", _SOURCE_PROBE, module],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=resolution_timeout,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    origin = None
+    for line in reversed(completed.stdout.splitlines()):
+        if line.startswith(_SOURCE_MARKER):
+            with suppress(ValueError):
+                origin = json.loads(line[len(_SOURCE_MARKER) :])
+            break
+    if not isinstance(origin, str) or not origin.endswith(".py"):
+        return None
+    return origin if os.path.isfile(origin) else None
+
+
+def source_path_for(
+    target: Target,
+    python: str | None = None,
+    *,
+    timeout: float = 15.0,
+) -> str | None:
+    """The ``.py`` file ``--advice`` should read, or None if there isn't one."""
+    python = python or sys.executable
+    if target.kind == "script":
+        path = os.path.abspath(target.value)
+        return path if path.endswith(".py") and os.path.isfile(path) else None
+    if target.kind == "code":
+        return None
+    module = target.value if target.kind == "module" else None
+    if target.kind == "console":
+        try:
+            module = _console_script_module(target.value, python, timeout=timeout)
+        except RunnerError:
+            return None
+    if not module:
+        return None
+    return _module_source_path(module, python, timeout=timeout)
 
 
 def run_profile(
