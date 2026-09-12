@@ -48,6 +48,13 @@ the top because it runs at import time.
      return unittest.mock.MagicMock()
 ```
 
+`--apply` is a rewrite, not PEP 810 `lazy import`. It only moves a name when
+**every** use is inside a function, refuses files under site-packages, splits
+`import a, b` into separate statements before moving the deferrable alias, and
+skips savings below `--min-saving`. `--apply-dry-run` prints the diff and
+writes nothing. It does not make remaining top-level imports lazy, and it is
+not a sampling profiler.
+
 ## Install
 
 ```console

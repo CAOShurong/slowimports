@@ -1,11 +1,11 @@
 ---
 schema_version: portable-project-memory/v1
-handoff_revision: 1
-updated_at: "2026-09-13T00:25:00+08:00"
-updated_by: "grok-unattended-init"
-base_revision: git:34fe1303c3c2f0cd8e0de1e6208fd430a0453ac7
-workspace_fingerprint: sha256:90e6de8fec56c69fa38c17195b4434cd1ee912680bdaa55ef1a8b4dc2631faba
-context_fingerprint: sha256:0d2bd8aa85605d2088b2e3ad460958938b59b7a4a353f4c2c6b5b18748f18d4c
+handoff_revision: 2
+updated_at: "2026-09-13T01:10:00+08:00"
+updated_by: "grok-unattended"
+base_revision: git:d813ff5a51e5a63f4ae28455c16e0011a944a0fa
+workspace_fingerprint: sha256:e15a2e9f7a39655748faa2c4c03790b930a89e6f9d42f506c0bbf02ba9f4f471
+context_fingerprint: sha256:55168ecc161fadc835475912de8930dc33b86158b74b6025dcc3a82355305c3e
 status: active
 ---
 
@@ -13,9 +13,9 @@ status: active
 
 ## Current objective
 
-Make `slowimports` the launch-quality star vehicle: `--apply` correct,
-README first screen shows a **real** rewrite, CI green, `docs/LAUNCH.md`
-paste-ready. Do not add more CI-flag clones.
+Take this repo to ~90%, not 100%. README must be rigorous (what `--apply`
+does and does not do). Then **leave** and do the same for pytest-importcost.
+Do not open a new AI repo until those existing rounds are done.
 
 ## Confirmed state
 

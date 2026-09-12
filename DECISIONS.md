@@ -29,3 +29,19 @@ tiny calculators (baudfit, i2cpullup) were rejected as 伪需求.
 - Stars still need a human Show HN paste; agents keep the paste current.
 - Feature flags that clone pytest-importcost (`--forbid` spam) are not the
   star path.
+
+## D-20260913-010000-si002
+
+### 70–90 on existing repos; README rigor is in scope; new AI repo later
+- Status: accepted
+- Date: 2026-09-13
+- Deciders: user
+
+### Decision
+
+- Unclear or unrigorous README **should** be fixed.
+- Do not spend effort on 90%→100% (extra flags, last edge cases).
+- 70%→90% (real apply, honest first screen) **is** worth doing.
+- Previous sequence still holds. Do **not** start a new repo this phase.
+- After several existing-repo rounds, investigate an AI topic (skills /
+  harness / context) and then build. User ideas come later.

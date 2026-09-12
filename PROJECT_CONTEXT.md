@@ -77,9 +77,10 @@ cost at startup.
 
 ## Definition of done
 
-Launch-ready for this repo (then leave; do not idle):
+~90% for this repo (then leave; do not grind 90→100):
 
 - `--apply` tested, refuses site-packages, splits combined imports.
-- README first screen: one sentence, real apply evidence, one install command.
+- README states what apply will and will not do; first-screen numbers are real.
 - `docs/LAUNCH.md` paste-ready. CI green on `main`.
-- Then the next product is `pytest-importcost`, not a new calculator.
+- Then pytest-importcost to the same bar. New AI-topic repo only after those
+  existing rounds, not immediately.
