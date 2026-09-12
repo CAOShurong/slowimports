@@ -45,3 +45,16 @@ tiny calculators (baudfit, i2cpullup) were rejected as 伪需求.
 - Previous sequence still holds. Do **not** start a new repo this phase.
 - After several existing-repo rounds, investigate an AI topic (skills /
   harness / context) and then build. User ideas come later.
+
+## D-20260913-014500-si003
+
+### Task 1 closed; new repo is runbrief
+- Status: accepted
+- Date: 2026-09-13
+- Deciders: user (做完 task1 就可以搞新的；这一轮更新 HANDOFF 并开始做)
+
+### Decision
+
+slowimports is task 1 and is done at ~90%. Next product is `runbrief`
+(command log on disk, short tail for agent context). Not a harness clone.
+
