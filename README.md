@@ -24,7 +24,29 @@ $ uvx slowimports -m pytest --advice
 
 That last part is the point. Knowing `unittest.mock` costs 64 ms is trivia;
 knowing it is only referenced inside one function, and that moving it there
-recovers those 64 ms, is a change you can make in ten seconds.
+recovers those 64 ms, is a change you can make in ten seconds — or let
+`--apply` write it:
+
+```console
+$ slowimports examples/slow_cli.py --apply
+```
+
+On this repo's example (real dry-run, not a mock): **169 ms** of startup import
+was only used inside functions. `--apply` moved those imports; `json` stayed at
+the top because it runs at import time.
+
+```diff
+-import argparse
+-import csv
+ import json
+-import unittest.mock
+ def read_csv(path):
++    import csv
+     return list(csv.DictReader(...))
+ def fake_backend():
++    import unittest.mock
+     return unittest.mock.MagicMock()
+```
 
 ## Install
 
